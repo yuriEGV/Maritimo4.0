@@ -1,6 +1,5 @@
 const express = require('express');
 const apiRoutes = require('./routes/index');
-const dbConfig = require('./config/db');
 require('dotenv').config();
 const morgan = require('morgan');
 const path = require('path');
@@ -18,32 +17,27 @@ app.use(morgan('dev'));
 let storageDir;
 
 if (process.env.VERCEL || process.env.NOW_REGION) {
-  // En Vercel (serverless/producción)
+  // En Vercel
   storageDir = path.join('/tmp', 'storage');
 } else {
-  // En local (desarrollo)
+  // En local
   storageDir = path.join(os.tmpdir(), 'storage');
 }
 
 if (!fs.existsSync(storageDir)) {
   fs.mkdirSync(storageDir, { recursive: true });
 }
+
 app.use('/files', express.static(storageDir));
 
-// Conexión a MongoDB (solo si no está ya conectada)
-(async () => {
-  try {
-    await dbConfig();
-    console.log('✅ Conectado a MongoDB');
-  } catch (err) {
-    console.error('❌ Error conectando a MongoDB:', err.message);
-  }
-})();
+// ❌ IMPORTANTE:
+// Ya NO conectamos a MongoDB aquí cuando estamos en Vercel
+// Porque las funciones serverless deben conectarse desde los controllers.
 
 // Rutas
 app.use('/api', apiRoutes);
 
-// Endpoint raíz para comprobar funcionamiento
+// Endpoint raíz
 app.get('/', (req, res) => {
   res.json({ message: 'API funcionando correctamente 🚀' });
 });
@@ -54,10 +48,22 @@ app.use(errorMiddleware);
 // Iniciar servidor solo en local
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
+
+  // SOLO conectar a Mongo en local
+  const connectDB = require('./config/db');
+
+  (async () => {
+    try {
+      await connectDB();
+      console.log('✅ MongoDB conectado (modo local)');
+    } catch (err) {
+      console.error('❌ Error conectando a MongoDB:', err.message);
+    }
+  })();
+
   app.listen(PORT, () => {
     console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
   });
 }
 
-// Export para Vercel
 module.exports = app;
