@@ -50,7 +50,7 @@ app.get('/', (req, res) => {
 
 // Middleware de errores
 app.use(errorMiddleware);
-console.log('Servidor ejecutándose en http://localhost:5000');
+
 // Iniciar servidor solo en local
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
