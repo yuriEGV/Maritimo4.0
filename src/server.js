@@ -33,6 +33,15 @@ app.use('/files', express.static(storageDir));
 // ❌ IMPORTANTE:
 // Ya NO conectamos a MongoDB aquí cuando estamos en Vercel
 // Porque las funciones serverless deben conectarse desde los controllers.
+app.get('/debug-env', (req, res) => {
+  res.json({
+    inVercel: !!process.env.VERCEL,
+    MONGO_URI: process.env.MONGO_URI ? 'OK' : 'MISSING',
+    MONGODB_URI: process.env.MONGODB_URI ? 'OK' : 'MISSING',
+    NODE_ENV: process.env.NODE_ENV || 'undefined',
+    ALL: Object.keys(process.env)
+  });
+});
 
 // Rutas
 app.use('/api', apiRoutes);
