@@ -1,4 +1,7 @@
 const express = require('express');
+const mongoose = require('mongoose');
+const connectDB = require('../config/db');
+
 const estudianteRoutes = require('./estudianteRoutes');
 const authRoutes = require('./authRoutes');
 const reportRoutes = require('./reportRoutes');
@@ -15,14 +18,32 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// 📌 Rutas públicas sin token
+/* ============================================================
+   🟦 1) Middleware UNIVERSAL para Vercel:
+      Garantiza conexión MongoDB ANTES de cualquier controlador
+   ============================================================ */
+router.use(async (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    console.log("🔌 Conectando a MongoDB desde función serverless...");
+    await connectDB();
+  }
+  return next();
+});
+
+/* =============================
+   🟩 2) Rutas públicas
+   ============================= */
 router.use('/auth', authRoutes);
 router.use('/tenants', tenantRoutes);
 
-// 📌 Middleware de autenticación (Todas las siguientes requieren token)
+/* =============================
+   🟥 3) Middleware autenticación
+   ============================= */
 router.use(authMiddleware);
 
-// 📌 Rutas privadas
+/* =============================
+   🟦 4) Rutas privadas
+   ============================= */
 router.use('/estudiantes', estudianteRoutes);
 router.use('/reports', reportRoutes);
 router.use('/courses', courseRoutes);
