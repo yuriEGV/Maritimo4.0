@@ -1,7 +1,11 @@
 const express = require('express');
 const apoderadoController = require('../controllers/apoderadoController');
+const auth = require('../middleware/authMiddleware'); // <-- IMPORTANTE
 
 const router = express.Router();
+
+// 🔥 Todas las rutas protegidas
+router.use(auth);
 
 // Create a new apoderado
 router.post('/', apoderadoController.createApoderado);
@@ -22,4 +26,3 @@ router.put('/:id', apoderadoController.updateApoderado);
 router.delete('/:id', apoderadoController.deleteApoderado);
 
 module.exports = router;
-
