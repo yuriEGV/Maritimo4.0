@@ -4,27 +4,33 @@ const tokenStore = require('../utils/tokenStore');
 function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
 
-    // Si NO viene Authorization → bloquear
+    // 🔒 1. Debe existir header y comenzar con "Bearer "
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ message: 'Token requerido' });
     }
 
+    // 🔒 2. Extraer token
     const token = authHeader.split(' ')[1];
 
-    if (!token) {
+    if (!token || token.trim() === '') {
         return res.status(401).json({ message: 'Token requerido' });
     }
 
-    // Validar si está invalidado
+    // 🔒 3. Revisar si el token está invalidado
     if (tokenStore.has(token)) {
         return res.status(401).json({ message: 'Token invalidado' });
     }
 
     try {
+        // 🔒 4. Validar token
         const secret = process.env.JWT_SECRET || 'tu_clave_secreta';
         const payload = jwt.verify(token, secret);
+
+        // Añadir usuario al request
         req.user = payload;
+
         return next();
+
     } catch (err) {
         return res.status(401).json({ message: 'Token inválido' });
     }
@@ -32,6 +38,7 @@ function authMiddleware(req, res, next) {
 
 module.exports = authMiddleware;
 
+// 🔒 Middleware para roles
 module.exports.authorizeRoles = (...roles) => {
     return (req, res, next) => {
         if (!req.user || !roles.includes(req.user.role)) {
