@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const gradeSchema = new mongoose.Schema({
     tenantId: { type: mongoose.Types.ObjectId, ref: 'Tenant', required: true },
@@ -7,6 +7,6 @@ const gradeSchema = new mongoose.Schema({
     score: { type: Number, required: true },
 }, { timestamps: true });
 
-module.exports = mongoose.model('Grade', gradeSchema);
+export default mongoose.model('Grade', gradeSchema);
 
 

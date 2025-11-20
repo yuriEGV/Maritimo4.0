@@ -1,5 +1,5 @@
-const express = require('express');
-const evaluationController = require('../controllers/evaluationController');
+import express from 'express';
+import evaluationController from '../controllers/evaluationController.js';
 
 const router = express.Router();
 
@@ -24,4 +24,4 @@ router.put('/:id', evaluationController.updateEvaluation);
 // Delete an evaluation by ID
 router.delete('/:id', evaluationController.deleteEvaluation);
 
-module.exports = router;
+export default router;

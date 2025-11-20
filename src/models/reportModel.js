@@ -1,14 +1,11 @@
-const mongoose = require('mongoose');
+import express from 'express';
+import tenantScope from '../middleware/tenantScope.js';
+import { requestReport, getReports } from '../controllers/reportController.js';
 
-const reportSchema = new mongoose.Schema({
-    tenantId: { type: mongoose.Types.ObjectId, ref: 'Tenant', required: true },
-    studentId: { type: mongoose.Types.ObjectId, ref: 'Estudiante' },
-    type: { type: String, enum: ['grades', 'attendance'], required: true },
-    status: { type: String, enum: ['queued', 'processing', 'completed', 'failed'], default: 'queued' },
-    fileUrl: { type: String },
-    error: { type: String },
-}, { timestamps: true });
+const router = express.Router();
 
-module.exports = mongoose.model('Report', reportSchema);
+// authMiddleware YA se ejecuta antes en index.js
+router.post('/', tenantScope, requestReport);
+router.get('/', tenantScope, getReports);
 
-
+export default router;

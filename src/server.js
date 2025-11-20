@@ -1,12 +1,13 @@
-const express = require('express');
-const apiRoutes = require('./routes/index');
-require('dotenv').config();
-const morgan = require('morgan');
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
-const errorMiddleware = require('./middleware/errorMiddleware');
-const connectDB = require('./config/db');
+import express from 'express';
+import apiRoutes from './routes/index.js';
+import 'dotenv/config';
+import morgan from 'morgan';
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
+import errorMiddleware from './middleware/errorMiddleware.js';
+import connectDB from './config/db.js';
+import { fileURLToPath } from 'url';
 
 const app = express();
 
@@ -29,16 +30,6 @@ if (!fs.existsSync(storageDir)) {
 
 app.use('/files', express.static(storageDir));
 
-// ✅ SIEMPRE conectar a MongoDB (local y Vercel)
-(async () => {
-  try {
-    await connectDB();
-    console.log('✅ MongoDB conectado');
-  } catch (err) {
-    console.error('❌ Error conectando a MongoDB:', err.message);
-  }
-})();
-
 // Rutas
 app.use('/api', apiRoutes);
 
@@ -51,12 +42,22 @@ app.get('/', (req, res) => {
 app.use(errorMiddleware);
 
 // Iniciar servidor solo en local
-if (require.main === module) {
+const __filename = fileURLToPath(import.meta.url);
+
+if (process.argv[1] === __filename) {
   const PORT = process.env.PORT || 5000;
 
-  app.listen(PORT, () => {
-    console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
-  });
+  connectDB()
+    .then(() => {
+      console.log('✅ MongoDB conectado (modo local)');
+
+      app.listen(PORT, () => {
+        console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
+      });
+    })
+    .catch(err => {
+      console.error('❌ Error conectando a MongoDB:', err.message);
+    });
 }
 
-module.exports = app;
+export default app;

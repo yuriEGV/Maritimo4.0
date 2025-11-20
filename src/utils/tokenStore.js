@@ -8,8 +8,5 @@ function has(token) {
   return invalidatedTokens.has(token);
 }
 
-module.exports = {
-  add,
-  has
-};
+export { add, has };
 

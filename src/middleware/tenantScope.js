@@ -7,6 +7,6 @@ function tenantScope(req, res, next) {
     return next();
 }
 
-module.exports = tenantScope;
+export default tenantScope;
 
 

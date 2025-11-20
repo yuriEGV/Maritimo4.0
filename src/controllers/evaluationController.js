@@ -1,4 +1,4 @@
-const Evaluation = require('../models/evaluationModel');
+import Evaluation from '../models/evaluationModel.js';
 
 class EvaluationController {
     // Create a new evaluation
@@ -88,4 +88,4 @@ class EvaluationController {
     }
 }
 
-module.exports = EvaluationController;
+export default EvaluationController;

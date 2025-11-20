@@ -1,6 +1,6 @@
-const express = require('express');
-const tenantScope = require('../middleware/tenantScope');
-const { requestReport, getReports } = require('../controllers/reportController');
+import express from 'express';
+import tenantScope from '../middleware/tenantScope.js';
+import { requestReport, getReports } from '../controllers/reportController.js';
 
 const router = express.Router();
 
@@ -8,4 +8,4 @@ const router = express.Router();
 router.post('/', tenantScope, requestReport);
 router.get('/', tenantScope, getReports);
 
-module.exports = router;
+export default router;

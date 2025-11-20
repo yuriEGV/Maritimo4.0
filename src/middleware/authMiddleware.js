@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
-const tokenStore = require('../utils/tokenStore');
+import jwt from 'jsonwebtoken';
+import * as tokenStore from '../utils/tokenStore.js';
 
 function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
@@ -36,10 +36,10 @@ function authMiddleware(req, res, next) {
     }
 }
 
-module.exports = authMiddleware;
+export default authMiddleware;
 
 // 🔒 Middleware para roles
-module.exports.authorizeRoles = (...roles) => {
+export const authorizeRoles = (...roles) => {
     return (req, res, next) => {
         if (!req.user || !roles.includes(req.user.role)) {
             return res.status(403).json({ message: 'No tienes permisos' });

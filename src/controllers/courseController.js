@@ -75,7 +75,7 @@ class CourseController {
 module.exports = CourseController;
 */
 
-const Course = require('../models/courseModel');
+import Course from '../models/courseModel.js';
 
 class CourseController {
     // Crear un curso
@@ -188,4 +188,4 @@ class CourseController {
     }
 }
 
-module.exports = CourseController;
+export default CourseController;

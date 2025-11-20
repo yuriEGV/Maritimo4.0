@@ -22,9 +22,9 @@ module.exports = router;*/
 
 
 
-const express = require('express');
-const tenantController = require('../controllers/tenantController');
-const authMiddleware = require('../middleware/authMiddleware');
+import express from 'express';
+import tenantController from '../controllers/tenantController.js';
+import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -52,4 +52,4 @@ router.put('/:id', tenantController.updateTenant);
 // Delete a tenant by ID
 router.delete('/:id', tenantController.deleteTenant);
 
-module.exports = router;
+export default router;

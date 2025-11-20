@@ -1,5 +1,5 @@
-const express = require('express');
-const enrollmentController = require('../controllers/enrollmentController');
+import express from 'express';
+import enrollmentController from '../controllers/enrollmentController.js';
 
 const router = express.Router();
 
@@ -30,4 +30,4 @@ router.put('/:id', enrollmentController.updateEnrollment);
 // Delete an enrollment by ID
 router.delete('/:id', enrollmentController.deleteEnrollment);
 
-module.exports = router;
+export default router;

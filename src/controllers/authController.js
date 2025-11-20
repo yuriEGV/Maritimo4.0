@@ -1,7 +1,7 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/userModel');
-const tokenStore = require('../utils/tokenStore');
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import User from '../models/userModel.js';
+import * as tokenStore from '../utils/tokenStore.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'tu_clave_secreta';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
@@ -154,7 +154,7 @@ function invalidateToken(req, res) {
     return res.json({ message: 'Token invalidado correctamente' });
 }
 
-module.exports = {
+export {
     registrar,
     login,
     invalidateToken,

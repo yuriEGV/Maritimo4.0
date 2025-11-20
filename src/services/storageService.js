@@ -1,15 +1,15 @@
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
 
 const storageDir = (process.env.VERCEL || process.env.NOW_REGION)
-	? path.join('/tmp', 'storage')
-	: path.join(os.tmpdir(), 'storage');
+    ? path.join('/tmp', 'storage')
+    : path.join(os.tmpdir(), 'storage');
 if (!fs.existsSync(storageDir)) {
-	fs.mkdirSync(storageDir, { recursive: true });
+    fs.mkdirSync(storageDir, { recursive: true });
 }
 
-async function saveStreamToFile(stream, filename) {
+export async function saveStreamToFile(stream, filename) {
     const filePath = path.join(storageDir, filename);
     const writeStream = fs.createWriteStream(filePath);
     const url = `/files/${filename}`;
@@ -20,7 +20,5 @@ async function saveStreamToFile(stream, filename) {
     });
     return { filePath, url };
 }
-
-module.exports = { saveStreamToFile };
 
 

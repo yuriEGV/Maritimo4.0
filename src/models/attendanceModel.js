@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const attendanceSchema = new mongoose.Schema({
     tenantId: { type: mongoose.Types.ObjectId, ref: 'Tenant', required: true },
@@ -8,6 +8,6 @@ const attendanceSchema = new mongoose.Schema({
     status: { type: String, enum: ['present', 'absent', 'late'], required: true },
 }, { timestamps: true });
 
-module.exports = mongoose.model('Attendance', attendanceSchema);
+export default mongoose.model('Attendance', attendanceSchema);
 
 

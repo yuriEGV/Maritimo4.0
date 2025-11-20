@@ -1,12 +1,12 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
     registrar,
     login,
     invalidateToken,
     obtenerPerfil,
     actualizarPerfil
-} = require('../controllers/authController');
-const authMiddleware = require('../middleware/authMiddleware');
+} from '../controllers/authController.js';
+import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -22,6 +22,6 @@ router.post('/logout', authMiddleware, invalidateToken);
 router.get('/perfil', authMiddleware, obtenerPerfil);
 router.put('/perfil', authMiddleware, actualizarPerfil);
 
-module.exports = router;
+export default router;
 
 

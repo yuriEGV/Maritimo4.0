@@ -2,6 +2,7 @@
   "name": "Maritimo 3.0",
   "version": "3.0.0",
   "description": "Backend for the school intranet application using Node.js, Express.js, and MongoDB.",
+  "type": "module",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

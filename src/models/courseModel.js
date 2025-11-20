@@ -12,7 +12,7 @@ module.exports = mongoose.model('Course', courseSchema);
 
 */
 
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const courseSchema = new mongoose.Schema({
   tenantId: {
@@ -51,4 +51,4 @@ const courseSchema = new mongoose.Schema({
 // Índice compuesto para evitar duplicados por tenant y nombre
 courseSchema.index({ tenantId: 1, name: 1 }, { unique: true });
 
-module.exports = mongoose.model('Course', courseSchema);
+export default mongoose.model('Course', courseSchema);

@@ -1,4 +1,4 @@
-const Attendance = require('../models/attendanceModel');
+import Attendance from '../models/attendanceModel.js';
 
 class AttendanceController {
     // Create a new attendance record
@@ -116,4 +116,4 @@ class AttendanceController {
     }
 }
 
-module.exports = AttendanceController;
+export default AttendanceController;

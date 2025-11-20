@@ -1,5 +1,5 @@
-const Tenant = require('../models/tenantModel');
-const connectDB = require('../config/db');
+import Tenant from '../models/tenantModel.js';
+import connectDB from '../config/db.js';
 
 class TenantController {
 
@@ -99,4 +99,4 @@ class TenantController {
     }
 }
 
-module.exports = TenantController;
+export default TenantController;

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const anotacionSchema = new mongoose.Schema({
     tenantId: {
@@ -56,5 +56,5 @@ const anotacionSchema = new mongoose.Schema({
 anotacionSchema.index({ estudianteId: 1, fecha: -1 });
 anotacionSchema.index({ tenantId: 1, tipo: 1 });
 
-module.exports = mongoose.model('Anotacion', anotacionSchema);
+export default mongoose.model('Anotacion', anotacionSchema);
 

@@ -4,6 +4,6 @@ function errorMiddleware(err, req, res, next) {
     return res.status(status).json({ message });
 }
 
-module.exports = errorMiddleware;
+export default errorMiddleware;
 
 

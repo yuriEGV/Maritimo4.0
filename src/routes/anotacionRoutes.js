@@ -1,5 +1,5 @@
-const express = require('express');
-const anotacionController = require('../controllers/anotacionController');
+import express from 'express';
+import anotacionController from '../controllers/anotacionController.js';
 
 const router = express.Router();
 
@@ -24,5 +24,5 @@ router.put('/:id', anotacionController.updateAnotacion);
 // Delete an anotacion by ID
 router.delete('/:id', anotacionController.deleteAnotacion);
 
-module.exports = router;
+export default router;
 

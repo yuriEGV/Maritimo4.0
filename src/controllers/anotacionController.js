@@ -1,4 +1,5 @@
-const Anotacion = require('../models/anotacionModel');
+import Anotacion from '../models/anotacionModel.js';
+import mongoose from 'mongoose';
 
 class AnotacionController {
     // Crear una nueva anotación
@@ -165,8 +166,6 @@ class AnotacionController {
     static async getEstadisticasByEstudiante(req, res) {
         try {
             const { estudianteId } = req.params;
-            const mongoose = require('mongoose');
-
             const estadisticas = await Anotacion.aggregate([
                 {
                     $match: {
@@ -204,5 +203,5 @@ class AnotacionController {
     }
 }
 
-module.exports = AnotacionController;
+export default AnotacionController;
 

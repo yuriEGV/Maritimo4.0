@@ -1,4 +1,4 @@
-const Estudiante = require('../models/estudianteModel');
+import Estudiante from '../models/estudianteModel.js';
 
 // Controller for handling student-related operations
 class EstudianteController {
@@ -63,4 +63,4 @@ class EstudianteController {
     }
 }
 
-module.exports = EstudianteController;
+export default EstudianteController;

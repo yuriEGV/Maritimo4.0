@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const evaluationSchema = new mongoose.Schema({
     tenantId: { type: mongoose.Types.ObjectId, ref: 'Tenant', required: true },
@@ -8,6 +8,6 @@ const evaluationSchema = new mongoose.Schema({
     date: { type: Date, required: true },
 }, { timestamps: true });
 
-module.exports = mongoose.model('Evaluation', evaluationSchema);
+export default mongoose.model('Evaluation', evaluationSchema);
 
 

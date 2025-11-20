@@ -1,4 +1,4 @@
-const Enrollment = require('../models/enrollmentModel');
+import Enrollment from '../models/enrollmentModel.js';
 
 class EnrollmentController {
     // Create a new enrollment
@@ -118,4 +118,4 @@ class EnrollmentController {
     }
 }
 
-module.exports = EnrollmentController;
+export default EnrollmentController;

@@ -1,5 +1,5 @@
-const User = require('../models/userModel');
-const bcrypt = require('bcryptjs');
+import User from '../models/userModel.js';
+import bcrypt from 'bcryptjs';
 
 class UserController {
     // Create a new user
@@ -118,4 +118,4 @@ class UserController {
     }
 }
 
-module.exports = UserController;
+export default UserController;

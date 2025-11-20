@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const apoderadoSchema = new mongoose.Schema({
     tenantId: {
@@ -58,5 +58,5 @@ apoderadoSchema.index({ estudianteId: 1, tipo: 1 }, {
     partialFilterExpression: { tipo: 'principal' }
 });
 
-module.exports = mongoose.model('Apoderado', apoderadoSchema);
+export default mongoose.model('Apoderado', apoderadoSchema);
 

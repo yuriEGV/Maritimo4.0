@@ -1,4 +1,4 @@
-const Apoderado = require('../models/apoderadoModel');
+import Apoderado from '../models/apoderadoModel.js';
 
 class ApoderadoController {
     // Crear un nuevo apoderado
@@ -135,5 +135,5 @@ class ApoderadoController {
     }
 }
 
-module.exports = ApoderadoController;
+export default ApoderadoController;
 

@@ -1,33 +1,39 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const connectDB = require('../config/db');
+import express from 'express';
+import mongoose from 'mongoose';
+import connectDB from '../config/db.js';
 
-const estudianteRoutes = require('./estudianteRoutes');
-const authRoutes = require('./authRoutes');
-const reportRoutes = require('./reportRoutes');
-const courseRoutes = require('./courseRoutes');
-const attendanceRoutes = require('./attendanceRoutes');
-const evaluationRoutes = require('./evaluationRoutes');
-const gradeRoutes = require('./gradeRoutes');
-const enrollmentRoutes = require('./enrollmentRoutes');
-const userRoutes = require('./userRoutes');
-const tenantRoutes = require('./tenantRoutes');
-const apoderadoRoutes = require('./apoderadoRoutes');
-const anotacionRoutes = require('./anotacionRoutes');
-const authMiddleware = require('../middleware/authMiddleware');
+import estudianteRoutes from './estudianteRoutes.js';
+import authRoutes from './authRoutes.js';
+import reportRoutes from './reportRoutes.js';
+import courseRoutes from './courseRoutes.js';
+import attendanceRoutes from './attendanceRoutes.js';
+import evaluationRoutes from './evaluationRoutes.js';
+import gradeRoutes from './gradeRoutes.js';
+import enrollmentRoutes from './enrollmentRoutes.js';
+import userRoutes from './userRoutes.js';
+import tenantRoutes from './tenantRoutes.js';
+import apoderadoRoutes from './apoderadoRoutes.js';
+import anotacionRoutes from './anotacionRoutes.js';
+import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 /* ============================================================
-   🟦 1) Middleware UNIVERSAL para Vercel:
-      Garantiza conexión MongoDB ANTES de cualquier controlador
+   🟦 1) Middleware para conectar Mongo SOLO cuando hace falta
+      ⚠ SIN await directo → devuelve una promesa a Express
    ============================================================ */
-router.use(async (req, res, next) => {
-  if (mongoose.connection.readyState !== 1) {
-    console.log("🔌 Conectando a MongoDB desde función serverless...");
-    await connectDB();
+router.use((req, res, next) => {
+  if (mongoose.connection.readyState === 1) {
+    return next();
   }
-  return next();
+
+  console.log("🔌 Conectando a MongoDB desde router...");
+  connectDB()
+    .then(() => next())
+    .catch(err => {
+      console.error("❌ Error conectando a MongoDB:", err);
+      res.status(500).json({ message: "Error de conexión a la base de datos" });
+    });
 });
 
 /* =============================
@@ -55,4 +61,4 @@ router.use('/users', userRoutes);
 router.use('/apoderados', apoderadoRoutes);
 router.use('/anotaciones', anotacionRoutes);
 
-module.exports = router;
+export default router;

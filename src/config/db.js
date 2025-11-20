@@ -1,43 +1,34 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-let isConnected = false; // 🔥 Persistente entre invocaciones en Vercel (global)
+if (!global.mongoose) {
+  global.mongoose = { conn: null, promise: null };
+}
 
-const connectDB = async () => {
+async function connectDB() {
   const mongoUri = process.env.MONGO_URI;
 
-  if (!mongoUri) {
-    console.error("❌ Falta MONGO_URI");
-    return;
+  if (!mongoUri) throw new Error("❌ Falta MONGO_URI");
+
+  // Ya conectado
+  if (global.mongoose.conn) {
+    return global.mongoose.conn;
   }
 
-  // Si ya está conectado, no volver a conectar
-  if (isConnected) {
-    return;
-  }
+  // Crear promesa SOLO cuando se llama la función
+  if (!global.mongoose.promise) {
+    mongoose.set("strictQuery", true);
 
-  // Si mongoose ya tiene una conexión establecida
-  if (mongoose.connection.readyState === 1) {
-    isConnected = true;
-    return;
-  }
-
-  try {
-    mongoose.set('strictQuery', true);
-
-    const conn = await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 10000,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
+    global.mongoose.promise = mongoose.connect(mongoUri, {
+      bufferCommands: false,
       maxPoolSize: 10,
-    });
-
-    isConnected = true;
-    console.log("🚀 MongoDB conectado:", conn.connection.host);
-
-  } catch (err) {
-    console.error("❌ Error al conectar a MongoDB:", err.message);
-    throw err;
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000
+    }).then((m) => m);
   }
-};
 
-module.exports = connectDB;
+  global.mongoose.conn = await global.mongoose.promise;
+  return global.mongoose.conn;
+}
+
+export default connectDB;

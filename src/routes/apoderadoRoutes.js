@@ -1,6 +1,6 @@
-const express = require('express');
-const apoderadoController = require('../controllers/apoderadoController');
-const auth = require('../middleware/authMiddleware'); // <-- IMPORTANTE
+import express from 'express';
+import apoderadoController from '../controllers/apoderadoController.js';
+import auth from '../middleware/authMiddleware.js'; // <-- IMPORTANTE
 
 const router = express.Router();
 
@@ -25,4 +25,4 @@ router.put('/:id', apoderadoController.updateApoderado);
 // Delete an apoderado by ID
 router.delete('/:id', apoderadoController.deleteApoderado);
 
-module.exports = router;
+export default router;

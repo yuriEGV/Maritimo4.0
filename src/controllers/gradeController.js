@@ -1,4 +1,4 @@
-const Grade = require('../models/gradeModel');
+import Grade from '../models/gradeModel.js';
 
 class GradeController {
     // Create a new grade
@@ -106,4 +106,4 @@ class GradeController {
     }
 }
 
-module.exports = GradeController;
+export default GradeController;

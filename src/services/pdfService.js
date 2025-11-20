@@ -1,7 +1,7 @@
-const PDFDocument = require('pdfkit');
-const { Readable } = require('stream');
+import PDFDocument from 'pdfkit';
+import { Readable } from 'stream';
 
-function generateSimplePdf(title, lines) {
+export function generateSimplePdf(title, lines) {
     const doc = new PDFDocument();
     const stream = new Readable({ read() {} });
     doc.on('data', (chunk) => stream.push(chunk));
@@ -13,7 +13,5 @@ function generateSimplePdf(title, lines) {
     doc.end();
     return stream;
 }
-
-module.exports = { generateSimplePdf };
 
 

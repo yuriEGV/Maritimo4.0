@@ -1,5 +1,5 @@
-const express = require('express');
-const estudianteController = require('../controllers/estudianteController');
+import express from 'express';
+import estudianteController from '../controllers/estudianteController.js';
 
 const router = express.Router();
 
@@ -18,4 +18,4 @@ router.put('/:id', estudianteController.updateEstudiante);
 // Delete an estudiante by ID
 router.delete('/:id', estudianteController.deleteEstudiante);
 
-module.exports = router;
+export default router;

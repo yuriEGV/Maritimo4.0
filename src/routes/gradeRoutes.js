@@ -1,5 +1,5 @@
-const express = require('express');
-const gradeController = require('../controllers/gradeController');
+import express from 'express';
+import gradeController from '../controllers/gradeController.js';
 
 const router = express.Router();
 
@@ -27,4 +27,4 @@ router.put('/:id', gradeController.updateGrade);
 // Delete a grade by ID
 router.delete('/:id', gradeController.deleteGrade);
 
-module.exports = router;
+export default router;
