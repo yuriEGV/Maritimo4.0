@@ -11,12 +11,17 @@ async function requestReport(req, res) {
     try {
         console.log("📌 [reports] Iniciando handler");
 
-        // ⭐ Conexión eficiente para Vercel (persistente global)
+        // Conectar a MongoDB (persistente en Vercel)
         await connectDB();
         console.log("📌 [reports] Mongo conectado correctamente");
 
         const { type, studentId, email, lines = [] } = req.body;
         console.log("📌 [reports] Body recibido:", req.body);
+        console.log("📌 [reports] User info:", req.user);
+
+        if (!req.user || !req.user.tenantId) {
+            return res.status(400).json({ message: "Usuario inválido o tenantId faltante" });
+        }
 
         // Crear registro en Mongo
         const report = await Report.create({
@@ -31,11 +36,11 @@ async function requestReport(req, res) {
         const pdfStream = generateSimplePdf(`Reporte: ${type}`, lines);
         console.log("📌 [reports] PDF generado correctamente");
 
-        // Guardar en storage
+        // Guardar PDF en storage
         const { url } = await saveStreamToFile(pdfStream, `report-${report._id}.pdf`);
         console.log("📌 [reports] PDF guardado en:", url);
 
-        // Actualizar estado
+        // Actualizar estado del reporte
         report.status = 'completed';
         report.fileUrl = url;
         await report.save();
@@ -48,7 +53,6 @@ async function requestReport(req, res) {
                 console.log("📧 Email enviado correctamente a:", email);
             } catch (emailError) {
                 console.error("❌ ERROR enviando email, pero reporte generado:", emailError);
-                // No interrumpimos el flujo si falla el correo
             }
         }
 
@@ -56,7 +60,7 @@ async function requestReport(req, res) {
 
     } catch (err) {
         console.error("❌ ERROR REAL EN REPORTES:", err);
-        return res.status(500).json({ message: err.message });
+        return res.status(500).json({ message: err.message, stack: err.stack });
     }
 }
 
@@ -67,6 +71,10 @@ async function getReports(req, res) {
     try {
         await connectDB();
 
+        if (!req.user || !req.user.tenantId) {
+            return res.status(400).json({ message: "Usuario inválido o tenantId faltante" });
+        }
+
         const reports = await Report.find({ tenantId: req.user.tenantId })
             .sort({ createdAt: -1 });
 
@@ -74,7 +82,7 @@ async function getReports(req, res) {
 
     } catch (err) {
         console.error("❌ ERROR en GET /reports:", err);
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: err.message, stack: err.stack });
     }
 }
 
