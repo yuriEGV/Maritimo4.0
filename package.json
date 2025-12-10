@@ -1,7 +1,7 @@
 {
-  "name": "Maritimo 3.0",
-  "version": "3.0.0",
-  "description": "Backend for the school intranet application using Node.js, Express.js, and MongoDB.",
+  "name": "Maritimo 5",
+  "version": "5.0.0",
+  "description": "Backend for school intranet application usando Node.js, Express.js, and MongoDB., payment version",
   "type": "module",
   "main": "src/server.js",
   "scripts": {
@@ -10,6 +10,8 @@
     "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
+    "axios": "^1.4.0",
+    "mercadopago": "^3.2.1",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
@@ -22,6 +24,8 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.4"
+  ,
+    "newman": "^5.3.0"
   },
   "author": "einsoft",
   "license": "MIT"

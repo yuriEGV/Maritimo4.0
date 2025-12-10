@@ -6,7 +6,7 @@ class GradeController {
         try {
             const grade = new Grade(req.body);
             await grade.save();
-            await grade.populate('studentId', 'nombre apellido');
+            await grade.populate('estudianteId', 'nombre apellido');
             await grade.populate('evaluationId', 'title maxScore');
             res.status(201).json(grade);
         } catch (error) {
@@ -18,7 +18,7 @@ class GradeController {
     static async getGrades(req, res) {
         try {
             const grades = await Grade.find()
-                .populate('studentId', 'nombre apellido')
+                .populate('estudianteId', 'nombre apellido')
                 .populate('evaluationId', 'title maxScore');
             res.status(200).json(grades);
         } catch (error) {
@@ -29,8 +29,8 @@ class GradeController {
     // Get grades by student
     static async getGradesByStudent(req, res) {
         try {
-            const grades = await Grade.find({ studentId: req.params.studentId })
-                .populate('studentId', 'nombre apellido')
+            const grades = await Grade.find({ estudianteId: req.params.estudianteId })
+                .populate('estudianteId', 'nombre apellido')
                 .populate('evaluationId', 'title maxScore');
             res.status(200).json(grades);
         } catch (error) {
@@ -42,7 +42,7 @@ class GradeController {
     static async getGradesByEvaluation(req, res) {
         try {
             const grades = await Grade.find({ evaluationId: req.params.evaluationId })
-                .populate('studentId', 'nombre apellido')
+                .populate('estudianteId', 'nombre apellido')
                 .populate('evaluationId', 'title maxScore');
             res.status(200).json(grades);
         } catch (error) {
@@ -54,7 +54,7 @@ class GradeController {
     static async getGradesByTenant(req, res) {
         try {
             const grades = await Grade.find({ tenantId: req.params.tenantId })
-                .populate('studentId', 'nombre apellido')
+                .populate('estudianteId', 'nombre apellido')
                 .populate('evaluationId', 'title maxScore');
             res.status(200).json(grades);
         } catch (error) {
@@ -66,7 +66,7 @@ class GradeController {
     static async getGradeById(req, res) {
         try {
             const grade = await Grade.findById(req.params.id)
-                .populate('studentId', 'nombre apellido')
+                .populate('estudianteId', 'nombre apellido')
                 .populate('evaluationId', 'title maxScore');
             if (!grade) {
                 return res.status(404).json({ message: 'Calificación no encontrada' });
@@ -81,7 +81,7 @@ class GradeController {
     static async updateGrade(req, res) {
         try {
             const grade = await Grade.findByIdAndUpdate(req.params.id, req.body, { new: true })
-                .populate('studentId', 'nombre apellido')
+                .populate('estudianteId', 'nombre apellido')
                 .populate('evaluationId', 'title maxScore');
             if (!grade) {
                 return res.status(404).json({ message: 'Calificación no encontrada' });

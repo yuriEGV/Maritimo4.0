@@ -6,7 +6,7 @@ class AttendanceController {
         try {
             const attendance = new Attendance(req.body);
             await attendance.save();
-            await attendance.populate('studentId', 'nombre apellido');
+            await attendance.populate('estudianteId', 'nombre apellido');
             await attendance.populate('courseId', 'name code');
             res.status(201).json(attendance);
         } catch (error) {
@@ -18,7 +18,7 @@ class AttendanceController {
     static async getAttendances(req, res) {
         try {
             const attendances = await Attendance.find()
-                .populate('studentId', 'nombre apellido')
+                .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code');
             res.status(200).json(attendances);
         } catch (error) {
@@ -30,7 +30,7 @@ class AttendanceController {
     static async getAttendanceByCourse(req, res) {
         try {
             const attendances = await Attendance.find({ courseId: req.params.courseId })
-                .populate('studentId', 'nombre apellido')
+                .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code');
             res.status(200).json(attendances);
         } catch (error) {
@@ -41,8 +41,8 @@ class AttendanceController {
     // Get attendance by student
     static async getAttendanceByStudent(req, res) {
         try {
-            const attendances = await Attendance.find({ studentId: req.params.studentId })
-                .populate('studentId', 'nombre apellido')
+            const attendances = await Attendance.find({ estudianteId: req.params.estudianteId })
+                .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code');
             res.status(200).json(attendances);
         } catch (error) {
@@ -64,7 +64,7 @@ class AttendanceController {
             }
             
             const attendances = await Attendance.find(query)
-                .populate('studentId', 'nombre apellido')
+                .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code');
             res.status(200).json(attendances);
         } catch (error) {
@@ -76,7 +76,7 @@ class AttendanceController {
     static async getAttendanceById(req, res) {
         try {
             const attendance = await Attendance.findById(req.params.id)
-                .populate('studentId', 'nombre apellido')
+                .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code');
             if (!attendance) {
                 return res.status(404).json({ message: 'Registro de asistencia no encontrado' });
@@ -91,7 +91,7 @@ class AttendanceController {
     static async updateAttendance(req, res) {
         try {
             const attendance = await Attendance.findByIdAndUpdate(req.params.id, req.body, { new: true })
-                .populate('studentId', 'nombre apellido')
+                .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code');
             if (!attendance) {
                 return res.status(404).json({ message: 'Registro de asistencia no encontrado' });

@@ -12,8 +12,8 @@ router.get('/', attendanceController.getAttendances);
 // Get attendance by course
 router.get('/course/:courseId', attendanceController.getAttendanceByCourse);
 
-// Get attendance by student
-router.get('/student/:studentId', attendanceController.getAttendanceByStudent);
+// Get attendance by estudiante
+router.get('/estudiante/:estudianteId', attendanceController.getAttendanceByStudent);
 
 // Get attendance by date range
 router.get('/date-range', attendanceController.getAttendanceByDateRange);

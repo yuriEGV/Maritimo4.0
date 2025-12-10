@@ -12,7 +12,8 @@ import { fileURLToPath } from 'url';
 const app = express();
 
 // Middleware
-app.use(express.json());
+// Capture raw body for webhook signature verification
+app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf && buf.toString(); } }));
 app.use(morgan('dev'));
 
 // Storage universal

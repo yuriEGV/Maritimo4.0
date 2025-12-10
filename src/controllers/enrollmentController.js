@@ -1,13 +1,37 @@
 import Enrollment from '../models/enrollmentModel.js';
+import { saveStreamToFile } from '../services/storageService.js';
+import { Readable } from 'stream';
 
 class EnrollmentController {
     // Create a new enrollment
     static async createEnrollment(req, res) {
         try {
-            const enrollment = new Enrollment(req.body);
+            const data = { ...req.body };
+            const enrollment = new Enrollment(data);
+
+            // handle files if present (multer memoryStorage -> req.files)
+            if (req.files && req.files.length) {
+                for (const file of req.files) {
+                    const bufferStream = new Readable();
+                    bufferStream.push(file.buffer);
+                    bufferStream.push(null);
+
+                    const filename = `enrollment-${Date.now()}-${file.originalname}`;
+                    const { url } = await saveStreamToFile(bufferStream, filename);
+
+                    enrollment.documents.push({
+                        filename: file.originalname,
+                        url,
+                        mimeType: file.mimetype,
+                        size: file.size
+                    });
+                }
+            }
+
             await enrollment.save();
-            await enrollment.populate('studentId', 'nombre apellido');
+            await enrollment.populate('estudianteId', 'nombre apellido');
             await enrollment.populate('courseId', 'name code');
+            await enrollment.populate('apoderadoId', 'nombre apellidos');
             res.status(201).json(enrollment);
         } catch (error) {
             res.status(400).json({ message: error.message });
@@ -18,8 +42,9 @@ class EnrollmentController {
     static async getEnrollments(req, res) {
         try {
             const enrollments = await Enrollment.find()
-                .populate('studentId', 'nombre apellido')
-                .populate('courseId', 'name code');
+                .populate('estudianteId', 'nombre apellido')
+                .populate('courseId', 'name code')
+                .populate('apoderadoId', 'nombre apellidos');
             res.status(200).json(enrollments);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -29,9 +54,10 @@ class EnrollmentController {
     // Get enrollments by student
     static async getEnrollmentsByStudent(req, res) {
         try {
-            const enrollments = await Enrollment.find({ studentId: req.params.studentId })
-                .populate('studentId', 'nombre apellido')
-                .populate('courseId', 'name code');
+            const enrollments = await Enrollment.find({ estudianteId: req.params.estudianteId })
+                .populate('estudianteId', 'nombre apellido')
+                .populate('courseId', 'name code')
+                .populate('apoderadoId', 'nombre apellidos');
             res.status(200).json(enrollments);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -42,8 +68,9 @@ class EnrollmentController {
     static async getEnrollmentsByCourse(req, res) {
         try {
             const enrollments = await Enrollment.find({ courseId: req.params.courseId })
-                .populate('studentId', 'nombre apellido')
-                .populate('courseId', 'name code');
+                .populate('estudianteId', 'nombre apellido')
+                .populate('courseId', 'name code')
+                .populate('apoderadoId', 'nombre apellidos');
             res.status(200).json(enrollments);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -54,8 +81,9 @@ class EnrollmentController {
     static async getEnrollmentsByTenant(req, res) {
         try {
             const enrollments = await Enrollment.find({ tenantId: req.params.tenantId })
-                .populate('studentId', 'nombre apellido')
-                .populate('courseId', 'name code');
+                .populate('estudianteId', 'nombre apellido')
+                .populate('courseId', 'name code')
+                .populate('apoderadoId', 'nombre apellidos');
             res.status(200).json(enrollments);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -66,8 +94,9 @@ class EnrollmentController {
     static async getEnrollmentsByPeriod(req, res) {
         try {
             const enrollments = await Enrollment.find({ period: req.params.period })
-                .populate('studentId', 'nombre apellido')
-                .populate('courseId', 'name code');
+                .populate('estudianteId', 'nombre apellido')
+                .populate('courseId', 'name code')
+                .populate('apoderadoId', 'nombre apellidos');
             res.status(200).json(enrollments);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -78,8 +107,9 @@ class EnrollmentController {
     static async getEnrollmentById(req, res) {
         try {
             const enrollment = await Enrollment.findById(req.params.id)
-                .populate('studentId', 'nombre apellido')
-                .populate('courseId', 'name code');
+                .populate('estudianteId', 'nombre apellido')
+                .populate('courseId', 'name code')
+                .populate('apoderadoId', 'nombre apellidos');
             if (!enrollment) {
                 return res.status(404).json({ message: 'Inscripción no encontrada' });
             }
@@ -93,11 +123,43 @@ class EnrollmentController {
     static async updateEnrollment(req, res) {
         try {
             const enrollment = await Enrollment.findByIdAndUpdate(req.params.id, req.body, { new: true })
-                .populate('studentId', 'nombre apellido')
-                .populate('courseId', 'name code');
+                .populate('estudianteId', 'nombre apellido')
+                .populate('courseId', 'name code')
+                .populate('apoderadoId', 'nombre apellidos');
             if (!enrollment) {
                 return res.status(404).json({ message: 'Inscripción no encontrada' });
             }
+            res.status(200).json(enrollment);
+        } catch (error) {
+            res.status(400).json({ message: error.message });
+        }
+    }
+
+    // Add documents to an existing enrollment
+    static async addDocuments(req, res) {
+        try {
+            const enrollment = await Enrollment.findById(req.params.id);
+            if (!enrollment) return res.status(404).json({ message: 'Inscripción no encontrada' });
+
+            if (req.files && req.files.length) {
+                for (const file of req.files) {
+                    const bufferStream = new Readable();
+                    bufferStream.push(file.buffer);
+                    bufferStream.push(null);
+
+                    const filename = `enrollment-${Date.now()}-${file.originalname}`;
+                    const { url } = await saveStreamToFile(bufferStream, filename);
+
+                    enrollment.documents.push({
+                        filename: file.originalname,
+                        url,
+                        mimeType: file.mimetype,
+                        size: file.size
+                    });
+                }
+            }
+
+            await enrollment.save();
             res.status(200).json(enrollment);
         } catch (error) {
             res.status(400).json({ message: error.message });

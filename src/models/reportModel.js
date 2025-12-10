@@ -15,7 +15,7 @@ import mongoose from 'mongoose';
 
 const reportSchema = new mongoose.Schema({
   tenantId: { type: String, required: true },
-  studentId: { type: String, required: true },
+  estudianteId: { type: String, required: true },
   type: { type: String, required: true },
   status: { type: String, default: 'processing' },
   fileUrl: { type: String },

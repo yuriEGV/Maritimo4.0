@@ -15,7 +15,7 @@ async function requestReport(req, res) {
         await connectDB();
         console.log("📌 [reports] Mongo conectado correctamente");
 
-        const { type, studentId, email, lines = [] } = req.body;
+        const { type, estudianteId, email, lines = [] } = req.body;
         console.log("📌 [reports] Body recibido:", req.body);
         console.log("📌 [reports] User info:", req.user);
 
@@ -26,7 +26,7 @@ async function requestReport(req, res) {
         // Crear registro en Mongo
         const report = await Report.create({
             tenantId: req.user.tenantId,
-            studentId,
+            estudianteId,
             type,
             status: 'processing'
         });

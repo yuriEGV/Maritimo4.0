@@ -1,16 +1,18 @@
 import express from 'express';
 import enrollmentController from '../controllers/enrollmentController.js';
+import upload from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
 // Create a new enrollment
-router.post('/', enrollmentController.createEnrollment);
+// Create a new enrollment. Accept multiple files via field `documents`.
+router.post('/', upload.array('documents'), enrollmentController.createEnrollment);
 
 // Get all enrollments
 router.get('/', enrollmentController.getEnrollments);
 
-// Get enrollments by student
-router.get('/student/:studentId', enrollmentController.getEnrollmentsByStudent);
+// Get enrollments by student (estudiante)
+router.get('/estudiante/:estudianteId', enrollmentController.getEnrollmentsByStudent);
 
 // Get enrollments by course
 router.get('/course/:courseId', enrollmentController.getEnrollmentsByCourse);
@@ -26,6 +28,9 @@ router.get('/:id', enrollmentController.getEnrollmentById);
 
 // Update an enrollment by ID
 router.put('/:id', enrollmentController.updateEnrollment);
+
+// Add documents to an existing enrollment
+router.post('/:id/documents', upload.array('documents'), enrollmentController.addDocuments);
 
 // Delete an enrollment by ID
 router.delete('/:id', enrollmentController.deleteEnrollment);

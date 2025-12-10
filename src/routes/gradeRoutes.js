@@ -9,8 +9,8 @@ router.post('/', gradeController.createGrade);
 // Get all grades
 router.get('/', gradeController.getGrades);
 
-// Get grades by student
-router.get('/student/:studentId', gradeController.getGradesByStudent);
+// Get grades by estudiante
+router.get('/estudiante/:estudianteId', gradeController.getGradesByStudent);
 
 // Get grades by evaluation
 router.get('/evaluation/:evaluationId', gradeController.getGradesByEvaluation);

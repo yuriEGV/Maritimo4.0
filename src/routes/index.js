@@ -14,6 +14,9 @@ import userRoutes from './userRoutes.js';
 import tenantRoutes from './tenantRoutes.js';
 import apoderadoRoutes from './apoderadoRoutes.js';
 import anotacionRoutes from './anotacionRoutes.js';
+import paymentRoutes from './paymentRoutes.js';
+import tariffRoutes from './tariffRoutes.js';
+import webhookRoutes from './webhookRoutes.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -41,6 +44,8 @@ router.use((req, res, next) => {
    ============================= */
 router.use('/auth', authRoutes);
 router.use('/tenants', tenantRoutes);
+// Public webhook endpoints for payment providers
+router.use('/payments/webhooks', webhookRoutes);
 
 /* =============================
    🟥 3) Middleware autenticación
@@ -59,6 +64,10 @@ router.use('/grades', gradeRoutes);
 router.use('/enrollments', enrollmentRoutes);
 router.use('/users', userRoutes);
 router.use('/apoderados', apoderadoRoutes);
+// NOTE: Matriculas feature merged into /enrollments — use enrollment routes which now include documents and apoderado
 router.use('/anotaciones', anotacionRoutes);
+// Payments and tariffs (private)
+router.use('/payments', paymentRoutes);
+router.use('/tariffs', tariffRoutes);
 
 export default router;
