@@ -21,40 +21,31 @@ import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-/* ============================================================
-   🟦 1) Middleware para conectar Mongo SOLO cuando hace falta
-      ⚠ SIN await directo → devuelve una promesa a Express
-   ============================================================ */
+// Connect to Mongo only when needed
 router.use((req, res, next) => {
   if (mongoose.connection.readyState === 1) {
     return next();
   }
 
-  console.log("🔌 Conectando a MongoDB desde router...");
+  console.log('Connecting to MongoDB from router...');
   connectDB()
     .then(() => next())
     .catch(err => {
-      console.error("❌ Error conectando a MongoDB:", err);
-      res.status(500).json({ message: "Error de conexión a la base de datos" });
+      console.error('Error connecting to MongoDB:', err);
+      res.status(500).json({ message: 'Error de conexión a la base de datos' });
     });
 });
 
-/* =============================
-   🟩 2) Rutas públicas
-   ============================= */
+// Public routes
 router.use('/auth', authRoutes);
 router.use('/tenants', tenantRoutes);
 // Public webhook endpoints for payment providers
 router.use('/payments/webhooks', webhookRoutes);
 
-/* =============================
-   🟥 3) Middleware autenticación
-   ============================= */
+// Auth middleware for private routes
 router.use(authMiddleware);
 
-/* =============================
-   🟦 4) Rutas privadas
-   ============================= */
+// Private routes
 router.use('/estudiantes', estudianteRoutes);
 router.use('/reports', reportRoutes);
 router.use('/courses', courseRoutes);

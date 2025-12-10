@@ -4,14 +4,16 @@ class TariffController {
   static async createTariff(req, res) {
     try {
       const { name, description, amount, currency, active } = req.body;
+
       const tariff = new Tariff({
         tenantId: req.user.tenantId,
         name,
         description,
         amount,
-        currency,
-        active: active !== undefined ? active : true,
+        currency: currency || 'CLP',
+        active: active ?? true,
       });
+
       await tariff.save();
       res.status(201).json(tariff);
     } catch (error) {
@@ -31,8 +33,13 @@ class TariffController {
 
   static async getTariff(req, res) {
     try {
-      const tariff = await Tariff.findOne({ _id: req.params.id, tenantId: req.user.tenantId });
+      const tariff = await Tariff.findOne({
+        _id: req.params.id,
+        tenantId: req.user.tenantId,
+      });
+
       if (!tariff) return res.status(404).json({ message: 'Tarifa no encontrada' });
+
       res.status(200).json(tariff);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -46,7 +53,9 @@ class TariffController {
         req.body,
         { new: true }
       );
+
       if (!tariff) return res.status(404).json({ message: 'Tarifa no encontrada' });
+
       res.status(200).json(tariff);
     } catch (error) {
       res.status(400).json({ message: error.message });
@@ -55,8 +64,13 @@ class TariffController {
 
   static async deleteTariff(req, res) {
     try {
-      const tariff = await Tariff.findOneAndDelete({ _id: req.params.id, tenantId: req.user.tenantId });
+      const tariff = await Tariff.findOneAndDelete({
+        _id: req.params.id,
+        tenantId: req.user.tenantId,
+      });
+
       if (!tariff) return res.status(404).json({ message: 'Tarifa no encontrada' });
+
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: error.message });

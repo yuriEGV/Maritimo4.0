@@ -1,66 +1,80 @@
 import Estudiante from '../models/estudianteModel.js';
 
-// Controller for handling student-related operations
 class EstudianteController {
-    // Create a new student
-    static async createEstudiante(req, res) {
-        try {
-            const estudiante = new Estudiante(req.body);
-            await estudiante.save();
-            res.status(201).json(estudiante);
-        } catch (error) {
-            res.status(400).json({ message: error.message });
-        }
-    }
+  static async createEstudiante(req, res) {
+    try {
+      const estudiante = new Estudiante({
+        ...req.body,
+        tenantId: req.user.tenantId, // FIX
+      });
 
-    // Get all students
-    static async getEstudiantes(req, res) {
-        try {
-            const estudiantes = await Estudiante.find();
-            res.status(200).json(estudiantes);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
+      await estudiante.save();
+      res.status(201).json(estudiante);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
     }
+  }
 
-    // Get a single student by ID
-    static async getEstudianteById(req, res) {
-        try {
-            const estudiante = await Estudiante.findById(req.params.id);
-            if (!estudiante) {
-                return res.status(404).json({ message: 'Estudiante no encontrado' });
-            }
-            res.status(200).json(estudiante);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    }
+  static async getEstudiantes(req, res) {
+    try {
+      const estudiantes = await Estudiante.find({
+        tenantId: req.user.tenantId, // FIX
+      });
 
-    // Update a student by ID
-    static async updateEstudiante(req, res) {
-        try {
-            const estudiante = await Estudiante.findByIdAndUpdate(req.params.id, req.body, { new: true });
-            if (!estudiante) {
-                return res.status(404).json({ message: 'Estudiante no encontrado' });
-            }
-            res.status(200).json(estudiante);
-        } catch (error) {
-            res.status(400).json({ message: error.message });
-        }
+      res.status(200).json(estudiantes);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
+  }
 
-    // Delete a student by ID
-    static async deleteEstudiante(req, res) {
-        try {
-            const estudiante = await Estudiante.findByIdAndDelete(req.params.id);
-            if (!estudiante) {
-                return res.status(404).json({ message: 'Estudiante no encontrado' });
-            }
-            res.status(204).send();
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
+  static async getEstudianteById(req, res) {
+    try {
+      const estudiante = await Estudiante.findOne({
+        _id: req.params.id,
+        tenantId: req.user.tenantId, // FIX
+      });
+
+      if (!estudiante)
+        return res.status(404).json({ message: 'Estudiante no encontrado' });
+
+      res.status(200).json(estudiante);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
+  }
+
+  static async updateEstudiante(req, res) {
+    try {
+      const estudiante = await Estudiante.findOneAndUpdate(
+        { _id: req.params.id, tenantId: req.user.tenantId },
+        req.body,
+        { new: true }
+      );
+
+      if (!estudiante)
+        return res.status(404).json({ message: 'Estudiante no encontrado' });
+
+      res.status(200).json(estudiante);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  }
+
+  static async deleteEstudiante(req, res) {
+    try {
+      const estudiante = await Estudiante.findOneAndDelete({
+        _id: req.params.id,
+        tenantId: req.user.tenantId,
+      });
+
+      if (!estudiante)
+        return res.status(404).json({ message: 'Estudiante no encontrado' });
+
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
 }
 
 export default EstudianteController;

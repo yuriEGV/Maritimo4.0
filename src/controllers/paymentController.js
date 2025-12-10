@@ -1,77 +1,41 @@
-/*import paymentService from '../services/paymentService.js';
-import Payment from '../models/paymentModel.js';
+import { config } from 'dotenv';
+config();
 
-class PaymentController {
-  static async createPayment(req, res) {
-    try {
-      const { estudianteId, tariffId, provider, metadata } = req.body;
-      const tenantId = req.user.tenantId;
-      const result = await paymentService.createPaymentFromTariff({ tenantId, estudianteId, tariffId, provider, metadata });
-      res.status(201).json(result);
-    } catch (error) {
-      console.error('Error crear pago:', error);
-      res.status(400).json({ message: error.message });
-    }
-  }
-
-  static async getPayment(req, res) {
-    try {
-      const payment = await paymentService.getPayment(req.params.id, req.user.tenantId);
-      if (!payment) return res.status(404).json({ message: 'Pago no encontrado' });
-      res.status(200).json(payment);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
-
-  static async listPayments(req, res) {
-    try {
-      const filter = { tenantId: req.user.tenantId };
-      if (req.query.estudianteId) filter.estudianteId = req.query.estudianteId;
-      const payments = await paymentService.listPayments(filter);
-      res.status(200).json(payments);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
-}
-
-export default PaymentController;*/
 import mercadopago from 'mercadopago';
 import Payment from '../models/paymentModel.js';
 import Tariff from '../models/tariffModel.js';
 import Estudiante from '../models/estudianteModel.js';
 
+// Config MercadoPago
 mercadopago.configure({
-  access_token: process.env.MP_ACCESS_TOKEN,
+  access_token: process.env.MERCADOPAGO_ACCESS_TOKEN, // FIX
 });
 
 class PaymentService {
-  /**
-   * Crear pago basado en una tarifa
-   */
   static async createPaymentFromTariff({ tenantId, estudianteId, tariffId, provider, metadata = {} }) {
-    // 1) Validación
+
+    // 1) Validar tarifa
     const tarifa = await Tariff.findOne({ _id: tariffId, tenantId });
     if (!tarifa) throw new Error('Tarifa no encontrada');
 
-    const estudiante = await Estudiante.findOne({ _id: estudianteId, tenantId });
+    // 2) Validar estudiante
+    const estudiante = await Estudiante.findOne({ _id: estudianteId });
     if (!estudiante) throw new Error('Estudiante no encontrado');
 
-    // 2) Crear preferencia MercadoPago
+    // 3) Crear preferencia MercadoPago
     const preference = {
       items: [
         {
-          title: tarifa.nombre,
+          title: tarifa.name,
           quantity: 1,
-          currency_id: 'CLP',
-          unit_price: tarifa.valor,
+          currency_id: tarifa.currency || 'CLP',
+          unit_price: tarifa.amount,
         },
       ],
       payer: {
-        name: estudiante.nombres,
-        surname: estudiante.apellidos,
-        email: estudiante.email,
+        name: estudiante.nombre,
+        surname: estudiante.apellido,
+        email: metadata?.email || "test_user@test.com", // evitar crash si falta email
       },
       back_urls: {
         success: process.env.MP_SUCCESS_URL,
@@ -89,40 +53,43 @@ class PaymentService {
 
     const response = await mercadopago.preferences.create(preference);
 
-    // 3) Registrar el pago en tu base de datos
+    const preferenceId =
+      response.body?.id || response.id;
+
+    const initPoint =
+      response.body?.init_point || response.init_point;
+
+    // 4) Guardar en BD
     const nuevoPago = await Payment.create({
       tenantId,
       estudianteId,
       tariffId,
+      amount: tarifa.amount,
+      currency: tarifa.currency || "CLP",
       provider,
-      mp_preference_id: response.body.id,
-      mp_init_point: response.body.init_point,
-      metadata,
+      providerPaymentId: preferenceId,
+      metadata: {
+        init_point: initPoint,
+        ...metadata
+      },
       status: 'pending',
     });
 
     return {
       message: 'Pago creado',
-      init_point: response.body.init_point,
-      preference_id: response.body.id,
+      init_point: initPoint,
+      preference_id: preferenceId,
       pago: nuevoPago,
     };
   }
 
-  /**
-   * Get payment por ID
-   */
   static async getPayment(id, tenantId) {
     return Payment.findOne({ _id: id, tenantId });
   }
 
-  /**
-   * Listar pagos por filtros
-   */
   static async listPayments(filter) {
     return Payment.find(filter).sort({ createdAt: -1 });
   }
 }
 
 export default PaymentService;
-
