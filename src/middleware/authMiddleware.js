@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+/*import jwt from 'jsonwebtoken';
 import * as tokenStore from '../utils/tokenStore.js';
 
 function authMiddleware(req, res, next) {
@@ -58,4 +58,89 @@ export const authorizeRoles = (...roles) => {
         }
         next();
     };
+};*/
+
+import jwt from 'jsonwebtoken';
+import * as tokenStore from '../utils/tokenStore.js';
+
+function authMiddleware(req, res, next) {
+    let token;
+
+    /* =====================================================
+       1. Obtener token desde Authorization header
+    ===================================================== */
+    const authHeader = req.headers.authorization;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const extracted = authHeader.split(' ')[1];
+
+        // Ignorar explícitamente valores inválidos comunes
+        if (extracted && extracted !== 'null' && extracted !== 'undefined') {
+            token = extracted;
+        }
+    }
+
+    /* =====================================================
+       2. Fallback: obtener token desde cookies
+    ===================================================== */
+    if (!token && req.headers.cookie) {
+        const cookies = req.headers.cookie.split(';').reduce((acc, cookie) => {
+            const [name, value] = cookie.trim().split('=');
+            acc[name] = value;
+            return acc;
+        }, {});
+
+        if (cookies.token && cookies.token !== 'null') {
+            token = cookies.token;
+        }
+    }
+
+    /* =====================================================
+       3. Validación final: token requerido
+    ===================================================== */
+    if (!token) {
+        return res.status(401).json({ message: 'Token requerido' });
+    }
+
+    /* =====================================================
+       4. Token invalidado (logout / blacklist)
+    ===================================================== */
+    if (tokenStore.has(token)) {
+        return res.status(401).json({ message: 'Token invalidado' });
+    }
+
+    /* =====================================================
+       5. Verificación JWT
+    ===================================================== */
+    try {
+        const secret = process.env.JWT_SECRET;
+        if (!secret) {
+            throw new Error('JWT_SECRET no definido');
+        }
+
+        const payload = jwt.verify(token, secret);
+
+        // Adjuntar usuario al request
+        req.user = payload;
+
+        next();
+
+    } catch (error) {
+        return res.status(401).json({ message: 'Token inválido o expirado' });
+    }
+}
+
+export default authMiddleware;
+
+/* =====================================================
+   Middleware de autorización por roles
+===================================================== */
+export const authorizeRoles = (...roles) => {
+    return (req, res, next) => {
+        if (!req.user || !roles.includes(req.user.role)) {
+            return res.status(403).json({ message: 'No tienes permisos' });
+        }
+        next();
+    };
 };
+

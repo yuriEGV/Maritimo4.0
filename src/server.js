@@ -1,6 +1,6 @@
+import 'dotenv/config'; // Importar primero para cargar variables de entorno
 import express from 'express';
 import apiRoutes from './routes/index.js';
-import 'dotenv/config';
 import morgan from 'morgan';
 import path from 'path';
 import fs from 'fs';
