@@ -1,5 +1,6 @@
 import 'dotenv/config'; // Importar primero para cargar variables de entorno
 import express from 'express';
+import mongoose from 'mongoose';
 import apiRoutes from './routes/index.js';
 import morgan from 'morgan';
 import path from 'path';
@@ -50,7 +51,7 @@ if (process.argv[1] === __filename) {
 
   connectDB()
     .then(() => {
-      console.log('✅ MongoDB conectado (modo local)');
+      console.log(`✅ MongoDB conectado a: ${mongoose.connection.host}`);
 
       app.listen(PORT, () => {
         console.log(`Servidor ejecutándose en http://localhost:${PORT}`);

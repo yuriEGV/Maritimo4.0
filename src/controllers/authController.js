@@ -260,6 +260,8 @@ async function registrar(req, res) {
 ================================ */
 async function login(req, res) {
     try {
+        console.log('LOGIN BODY:', req.body); // [DEBUG]
+
         const { email, password } = req.body;
 
         if (!email || !password) {
@@ -271,11 +273,15 @@ async function login(req, res) {
         const normalizedEmail = email.toLowerCase().trim();
 
         const user = await User.findOne({ email: normalizedEmail });
+        console.log('USER FOUND:', user ? user.email : null); // [DEBUG]
+
         if (!user) {
             return res.status(401).json({ message: 'Credenciales inválidas' });
         }
 
         const isMatch = await bcrypt.compare(password, user.passwordHash);
+        console.log('PASSWORD MATCH:', isMatch); // [DEBUG]
+
         if (!isMatch) {
             return res.status(401).json({ message: 'Credenciales inválidas' });
         }
