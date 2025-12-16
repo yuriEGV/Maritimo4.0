@@ -2,17 +2,29 @@ import jwt from 'jsonwebtoken';
 import * as tokenStore from '../utils/tokenStore.js';
 
 function authMiddleware(req, res, next) {
-    const authHeader = req.headers.authorization;
+    let token = null;
 
-    // 🔒 1. Debe existir header y comenzar con "Bearer "
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Token requerido' });
+    // 1. Intentar obtener desde Header Authorization
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
     }
 
-    // 🔒 2. Extraer token
-    const token = authHeader.split(' ')[1];
+    // 2. Si no hay token válido en header (o es 'null'), intentar desde Cookies
+    if ((!token || token === 'null') && req.headers.cookie) {
+        const cookies = req.headers.cookie.split(';').reduce((acc, cookie) => {
+            const [name, value] = cookie.trim().split('=');
+            acc[name] = value;
+            return acc;
+        }, {});
 
-    if (!token || token.trim() === '') {
+        if (cookies.token) {
+            token = cookies.token;
+        }
+    }
+
+    // 🔒 Validación final: Debe existir un token
+    if (!token || token.trim() === '' || token === 'null') {
         return res.status(401).json({ message: 'Token requerido' });
     }
 
