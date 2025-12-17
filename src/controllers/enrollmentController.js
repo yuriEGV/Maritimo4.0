@@ -6,10 +6,35 @@ class EnrollmentController {
     // Create a new enrollment
     static async createEnrollment(req, res) {
         try {
-            const data = { ...req.body };
-            const enrollment = new Enrollment(data);
+            const {
+                studentId,      // viene del frontend
+                courseId,
+                period,
+                apoderadoId,
+                status,
+                fee,
+                notes
+            } = req.body;
 
-            // handle files if present (multer memoryStorage -> req.files)
+            // Validaciones claras
+            if (!studentId || !courseId || !period) {
+                return res.status(400).json({
+                    message: 'studentId, courseId y period son obligatorios'
+                });
+            }
+
+            const enrollment = new Enrollment({
+                tenantId: req.user.tenantId,   // SIEMPRE desde JWT
+                estudianteId: studentId,       // normalización aquí
+                courseId,
+                period,
+                apoderadoId,
+                status,
+                fee,
+                notes
+            });
+
+            // Documentos (si vienen)
             if (req.files && req.files.length) {
                 for (const file of req.files) {
                     const bufferStream = new Readable();
@@ -29,14 +54,18 @@ class EnrollmentController {
             }
 
             await enrollment.save();
+
             await enrollment.populate('estudianteId', 'nombre apellido');
             await enrollment.populate('courseId', 'name code');
             await enrollment.populate('apoderadoId', 'nombre apellidos');
+
             res.status(201).json(enrollment);
+
         } catch (error) {
             res.status(400).json({ message: error.message });
         }
     }
+
 
     // Get all enrollments
     static async getEnrollments(req, res) {
