@@ -9,6 +9,10 @@ import os from 'os';
 import errorMiddleware from './middleware/errorMiddleware.js';
 import connectDB from './config/db.js';
 import { fileURLToPath } from 'url';
+import reportRoutes from './routes/reportRoutes.js';
+import authMiddleware from './middleware/authMiddleware.js';
+
+
 
 const app = express();
 
@@ -42,6 +46,10 @@ app.get('/', (req, res) => {
 
 // Middleware de errores
 app.use(errorMiddleware);
+
+// reportes
+app.use('/api/reports', authMiddleware, reportRoutes);
+
 
 // Iniciar servidor solo en local
 const __filename = fileURLToPath(import.meta.url);

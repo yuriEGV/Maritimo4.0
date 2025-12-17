@@ -1,23 +1,40 @@
-/*import express from 'express';
-import tenantScope from '../middleware/tenantScope.js';
-import { requestReport, getReports } from '../controllers/reportController.js';
-
-const router = express.Router();
-
-// authMiddleware ya se ejecuta antes en index.js
-router.post('/', tenantScope, requestReport);
-router.get('/', tenantScope, getReports);
-
-export default router;
-*/
-
-
 import express from 'express';
-import ReportController from '../controllers/reportController.js';
-import authMiddleware from '../middleware/authMiddleware.js';
+import Report from '../models/reportModel.js';
 
 const router = express.Router();
 
-router.post('/', authMiddleware, ReportController.createReport);
+// Crear reporte
+router.post('/', async (req, res, next) => {
+    try {
+        const report = await Report.create({
+            tenantId: req.user.tenantId,
+            type: req.body.tipo,
+            format: req.body.formato,
+            filters: req.body.filtros
+        });
+
+        res.status(201).json(report);
+    } catch (err) {
+        next(err);
+    }
+});
+
+// 🔹 OBTENER REPORTE POR ID (ESTE FALTABA)
+router.get('/:id', async (req, res, next) => {
+    try {
+        const report = await Report.findOne({
+            _id: req.params.id,
+            tenantId: req.user.tenantId
+        });
+
+        if (!report) {
+            return res.status(404).json({ message: 'Reporte no encontrado' });
+        }
+
+        res.json(report);
+    } catch (err) {
+        next(err);
+    }
+});
 
 export default router;
