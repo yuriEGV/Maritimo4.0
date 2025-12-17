@@ -11,6 +11,7 @@ import connectDB from './config/db.js';
 import { fileURLToPath } from 'url';
 import reportRoutes from './routes/reportRoutes.js';
 import authMiddleware from './middleware/authMiddleware.js';
+import courseRoutes from './routes/courseRoutes.js';
 
 
 
@@ -49,6 +50,9 @@ app.use(errorMiddleware);
 
 // reportes
 app.use('/api/reports', authMiddleware, reportRoutes);
+
+// cursos
+app.use('/api/courses', authMiddleware, courseRoutes);
 
 
 // Iniciar servidor solo en local
