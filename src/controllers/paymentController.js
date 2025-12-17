@@ -24,12 +24,16 @@ class PaymentController {
         apoderadoId,
         tenantId,
         tariffId: tariff._id,
-        concepto: tariff.nombre,
-        amount: tariff.monto,
-        metodoPago: tariff.metodoPago || 'transferencia',
+
+        // ✅ USAR CAMPOS REALES DE TARIFA
+        concepto: tariff.name,     // ← ESTE ERA EL ERROR
+        amount: tariff.amount,     // ← ESTE ERA EL ERROR
+
+        metodoPago: tariff.method || 'transferencia',
         estado: 'pendiente',
         fechaVencimiento
       });
+
 
       res.status(201).json(payment);
 
@@ -59,3 +63,5 @@ class PaymentController {
 }
 
 export default PaymentController;
+
+
