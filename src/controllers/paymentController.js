@@ -1,4 +1,4 @@
-import { config } from 'dotenv';
+/*import { config } from 'dotenv';
 config();
 
 import mercadopago from 'mercadopago';
@@ -92,4 +92,60 @@ class PaymentService {
   }
 }
 
-export default PaymentService;
+export default PaymentService;*/
+
+
+import Payment from '../models/paymentModel.js';
+import Tariff from '../models/tariffModel.js';
+
+class PaymentController {
+  static async createPayment(req, res) {
+    try {
+      const {
+        estudianteId,
+        apoderadoId,
+        concepto,
+        monto,
+        metodoPago,
+        fechaVencimiento,
+        tariffId
+      } = req.body;
+
+      if (!estudianteId || !concepto || !monto || !metodoPago) {
+        return res.status(400).json({
+          message: 'Estudiante, concepto, monto y método de pago son obligatorios'
+        });
+      }
+
+      let tariff = null;
+
+      // SOLO buscar tarifa si se envía explícitamente
+      if (tariffId) {
+        tariff = await Tariff.findById(tariffId);
+        if (!tariff) {
+          return res.status(400).json({ message: 'Tarifa no encontrada' });
+        }
+      }
+
+      const payment = await Payment.create({
+        estudianteId,
+        apoderadoId,
+        concepto,
+        monto: tariff ? tariff.monto : monto,
+        metodoPago,
+        estado: 'pendiente',
+        fechaVencimiento,
+        tenantId: req.user.tenantId,
+        tariffId: tariff ? tariff._id : null
+      });
+
+      res.status(201).json(payment);
+
+    } catch (error) {
+      console.error('Payment error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  }
+}
+
+export default PaymentController;
