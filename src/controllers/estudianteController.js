@@ -3,12 +3,12 @@ import Estudiante from '../models/estudianteModel.js';
 class EstudianteController {
   static async createEstudiante(req, res) {
     try {
-      const estudiante = new Estudiante({
+      const tenantId = req.user.tenantId;
+      const estudiante = await Estudiante.create({
         ...req.body,
-        tenantId: req.user.tenantId, // FIX
+        tenantId,
       });
 
-      await estudiante.save();
       res.status(201).json(estudiante);
     } catch (error) {
       res.status(400).json({ message: error.message });
