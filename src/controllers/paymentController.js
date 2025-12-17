@@ -25,7 +25,7 @@ class PaymentController {
         tenantId,
         tariffId: tariff._id,
         concepto: tariff.nombre,
-        monto: tariff.monto,
+        amount: tariff.monto,
         metodoPago: tariff.metodoPago || 'transferencia',
         estado: 'pendiente',
         fechaVencimiento

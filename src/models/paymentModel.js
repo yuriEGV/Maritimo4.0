@@ -1,29 +1,55 @@
 import mongoose from 'mongoose';
 
 const paymentSchema = new mongoose.Schema({
-  tenantId: { type: mongoose.Types.ObjectId, ref: 'Tenant', required: true },
-
-  estudianteId: { type: mongoose.Types.ObjectId, ref: 'Estudiante', required: true },
-
-  tariffId: { type: mongoose.Types.ObjectId, ref: 'Tariff', required: true },
-
-  amount: { type: Number, required: true },      // viene desde Tariff
-  currency: { type: String, default: 'CLP' },
-
-  status: {
-    type: String,
-    enum: ['pending', 'approved', 'rejected', 'cancelled'],
-    default: 'pending',
+  tenantId: {
+    type: mongoose.Types.ObjectId,
+    ref: 'Tenant',
+    required: true
   },
 
-  provider: { type: String, default: 'mercadopago' },
+  estudianteId: {
+    type: mongoose.Types.ObjectId,
+    ref: 'Estudiante',
+    required: true
+  },
 
-  // IDs de MercadoPago
-  mp_preference_id: { type: String },   // creado al iniciar pago
-  mp_init_point: { type: String },      // URL del checkout
-  mp_payment_id: { type: String },      // ID final (actualizado por webhook)
+  apoderadoId: {
+    type: mongoose.Types.ObjectId,
+    ref: 'Apoderado'
+  },
 
-  metadata: { type: Object },
+  tariffId: {
+    type: mongoose.Types.ObjectId,
+    ref: 'Tariff',
+    required: true
+  },
+
+  concepto: {
+    type: String,
+    required: true
+  },
+
+  amount: {                     // ✅ ESTE ES EL CAMPO REAL
+    type: Number,
+    required: true
+  },
+
+  metodoPago: {
+    type: String,
+    enum: ['transferencia', 'mercadopago', 'efectivo'],
+    required: true
+  },
+
+  estado: {
+    type: String,
+    enum: ['pendiente', 'pagado', 'vencido'],
+    default: 'pendiente'
+  },
+
+  fechaVencimiento: {
+    type: Date
+  }
+
 }, { timestamps: true });
 
 export default mongoose.model('Payment', paymentSchema);
