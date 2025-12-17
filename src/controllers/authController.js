@@ -367,17 +367,8 @@ async function actualizarPerfil(req, res) {
    LOGOUT / INVALIDATE
 ================================ */
 function invalidateToken(req, res) {
-    const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ')
-        ? authHeader.slice(7)
-        : null;
-
-    if (!token) {
-        return res.status(400).json({ message: 'No se proporcionó token' });
-    }
-
+    const token = req.headers.authorization?.split(' ')[1];
     tokenStore.add(token);
-
     return res.json({ message: 'Sesión cerrada correctamente' });
 }
 
