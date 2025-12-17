@@ -1,13 +1,21 @@
 import express from 'express';
+import PaymentController from '../controllers/paymentController.js';
 import paymentService from '../services/paymentService.js';
 
 const router = express.Router();
 
-// Create payment from a tariff and optional provider checkout
-router.post('/', async (req, res, next) => {
+/**
+ * Pago MANUAL (sin tarifa)
+ */
+router.post('/manual', PaymentController.createPayment);
+
+/**
+ * Pago DESDE TARIFA (automático / proveedor)
+ */
+router.post('/from-tariff', async (req, res, next) => {
   try {
     const { estudianteId, tariffId, provider, metadata } = req.body || {};
-    const tenantId = req.user?.tenantId || req.body?.tenantId;
+    const tenantId = req.user?.tenantId;
 
     const result = await paymentService.createPaymentFromTariff({
       tenantId,
@@ -23,21 +31,32 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-// List payments for tenant
+/**
+ * Listar pagos
+ */
 router.get('/', async (req, res, next) => {
   try {
-    const payments = await paymentService.listPayments({ tenantId: req.user?.tenantId });
+    const payments = await paymentService.listPayments({
+      tenantId: req.user?.tenantId
+    });
     res.json(payments);
   } catch (err) {
     next(err);
   }
 });
 
-// Get single payment
+/**
+ * Obtener pago por ID
+ */
 router.get('/:id', async (req, res, next) => {
   try {
-    const payment = await paymentService.getPayment(req.params.id, req.user?.tenantId);
-    if (!payment) return res.status(404).json({ message: 'Pago no encontrado' });
+    const payment = await paymentService.getPayment(
+      req.params.id,
+      req.user?.tenantId
+    );
+    if (!payment) {
+      return res.status(404).json({ message: 'Pago no encontrado' });
+    }
     res.json(payment);
   } catch (err) {
     next(err);
