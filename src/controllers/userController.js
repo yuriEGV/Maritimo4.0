@@ -18,10 +18,8 @@ class UserController {
                 role
             } = req.body;
 
-            // Normalizar nombre
             const finalName =
-                name ||
-                (apellido ? `${nombre} ${apellido}` : nombre);
+                name || (apellido ? `${nombre} ${apellido}` : nombre);
 
             if (!finalName || !email || !password || !(rol || role)) {
                 return res.status(400).json({
@@ -29,7 +27,6 @@ class UserController {
                 });
             }
 
-            // Normalizar rol
             const roleMap = {
                 admin: 'admin',
                 administrador: 'admin',
@@ -44,10 +41,8 @@ class UserController {
                 return res.status(400).json({ message: 'Rol inválido' });
             }
 
-            // Normalizar email
             const normalizedEmail = email.toLowerCase().trim();
 
-            // Verificar duplicado en el MISMO tenant
             const existingUser = await User.findOne({
                 email: normalizedEmail,
                 tenantId: req.user.tenantId
@@ -60,21 +55,14 @@ class UserController {
             const passwordHash = await bcrypt.hash(password, 10);
 
             const user = await User.create({
-                tenantId: req.user.tenantId,   // 🔒 SIEMPRE desde JWT
+                tenantId: req.user.tenantId,
                 name: finalName,
                 email: normalizedEmail,
                 passwordHash,
                 role: finalRole
             });
 
-            res.status(201).json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                tenantId: user.tenantId,
-                createdAt: user.createdAt
-            });
+            res.status(201).json(user);
 
         } catch (error) {
             res.status(400).json({ message: error.message });
