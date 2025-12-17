@@ -3,24 +3,27 @@ import Report from '../models/reportModel.js';
 
 const router = express.Router();
 
-// Crear reporte
-router.post('/', async (req, res, next) => {
+/**
+ * LISTAR REPORTES DEL TENANT
+ * GET /api/reports
+ */
+router.get('/', async (req, res) => {
     try {
-        const report = await Report.create({
-            tenantId: req.user.tenantId,
-            type: req.body.tipo,
-            format: req.body.formato,
-            filters: req.body.filtros
-        });
+        const reports = await Report.find({
+            tenantId: req.user.tenantId
+        }).sort({ createdAt: -1 });
 
-        res.status(201).json(report);
-    } catch (err) {
-        next(err);
+        res.json(reports);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
 
-// 🔹 OBTENER REPORTE POR ID (ESTE FALTABA)
-router.get('/:id', async (req, res, next) => {
+/**
+ * OBTENER REPORTE POR ID
+ * GET /api/reports/:id
+ */
+router.get('/:id', async (req, res) => {
     try {
         const report = await Report.findOne({
             _id: req.params.id,
@@ -32,8 +35,8 @@ router.get('/:id', async (req, res, next) => {
         }
 
         res.json(report);
-    } catch (err) {
-        next(err);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
 
