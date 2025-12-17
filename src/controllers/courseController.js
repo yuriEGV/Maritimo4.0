@@ -14,7 +14,7 @@ class CourseController {
 
             const course = await Course.create({
                 name,
-                description: description || '',
+                description,
                 teacherId,
                 tenantId: req.user.tenantId
             });
@@ -22,10 +22,10 @@ class CourseController {
             res.status(201).json(course);
 
         } catch (error) {
-            console.error(error);
             res.status(400).json({ message: error.message });
         }
     }
+
 
 }
 

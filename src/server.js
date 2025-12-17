@@ -19,25 +19,15 @@ const app = express();
 
 // Middleware
 // Capture raw body for webhook signature verification
+// Middlewares base
 app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf && buf.toString(); } }));
 app.use(morgan('dev'));
 
-// Storage universal
-let storageDir;
+// Rutas protegidas específicas PRIMERO
+app.use('/api/reports', authMiddleware, reportRoutes);
+app.use('/api/courses', authMiddleware, courseRoutes);
 
-if (process.env.VERCEL || process.env.NOW_REGION) {
-  storageDir = path.join('/tmp', 'storage');
-} else {
-  storageDir = path.join(os.tmpdir(), 'storage');
-}
-
-if (!fs.existsSync(storageDir)) {
-  fs.mkdirSync(storageDir, { recursive: true });
-}
-
-app.use('/files', express.static(storageDir));
-
-// Rutas
+// Rutas generales DESPUÉS
 app.use('/api', apiRoutes);
 
 // Endpoint raíz
@@ -45,14 +35,8 @@ app.get('/', (req, res) => {
   res.json({ message: 'API funcionando correctamente 🚀' });
 });
 
-// Middleware de errores
+// Middleware de errores SIEMPRE AL FINAL
 app.use(errorMiddleware);
-
-// reportes
-app.use('/api/reports', authMiddleware, reportRoutes);
-
-// cursos
-app.use('/api/courses', authMiddleware, courseRoutes);
 
 
 // Iniciar servidor solo en local
