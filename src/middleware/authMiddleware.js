@@ -71,12 +71,17 @@ function authMiddleware(req, res, next) {
     ===================================================== */
     const authHeader = req.headers.authorization;
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        const extracted = authHeader.split(' ')[1];
-
-        // Ignorar explícitamente valores inválidos comunes
-        if (extracted && extracted !== 'null' && extracted !== 'undefined') {
-            token = extracted;
+    if (authHeader) {
+        // Handle possible duplicate headers (comma separated string)
+        const parts = authHeader.split(',');
+        for (const part of parts) {
+            if (part.trim().startsWith('Bearer ')) {
+                const extracted = part.trim().split(' ')[1];
+                if (extracted && extracted !== 'null' && extracted !== 'undefined') {
+                    token = extracted;
+                    break;
+                }
+            }
         }
     }
 
