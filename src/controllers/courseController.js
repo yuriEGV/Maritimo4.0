@@ -75,7 +75,7 @@ class CourseController {
 module.exports = CourseController;
 */
 
-import Course from '../models/courseModel.js';
+/*import Course from '../models/courseModel.js';
 
 class CourseController {
     // Crear un curso
@@ -186,6 +186,40 @@ class CourseController {
             res.status(500).json({ message: error.message });
         }
     }
+}
+
+export default CourseController;
+*/
+
+import Course from '../models/courseModel.js';
+
+class CourseController {
+
+    static async createCourse(req, res) {
+        try {
+            const { nombre, codigo, nivel } = req.body;
+
+            if (!nombre || !codigo || !nivel) {
+                return res.status(400).json({
+                    message: 'nombre, codigo y nivel son obligatorios'
+                });
+            }
+
+            const course = await Course.create({
+                name: nombre,
+                code: codigo,
+                level: nivel,
+                tenantId: req.user.tenantId
+            });
+
+            res.status(201).json(course);
+
+        } catch (error) {
+            console.error('Course error:', error);
+            res.status(400).json({ message: error.message });
+        }
+    }
+
 }
 
 export default CourseController;
