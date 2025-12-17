@@ -2,30 +2,71 @@ import User from '../models/userModel.js';
 import bcrypt from 'bcryptjs';
 
 class UserController {
-    // Create a new user
+
+    /* =====================================================
+       CREATE USER
+    ===================================================== */
     static async createUser(req, res) {
         try {
-            const { name, email, password, role, tenantId } = req.body;
-            
-            // Check if user already exists
-            const existingUser = await User.findOne({ email });
-            if (existingUser) {
-                return res.status(400).json({ message: 'El usuario ya existe' });
-            }
-
-            // Hash password
-            const saltRounds = 10;
-            const passwordHash = await bcrypt.hash(password, saltRounds);
-
-            const user = new User({
+            const {
+                nombre,
+                apellido,
                 name,
                 email,
-                passwordHash,
-                role,
-                tenantId
+                password,
+                rol,
+                role
+            } = req.body;
+
+            // Normalizar nombre
+            const finalName =
+                name ||
+                (apellido ? `${nombre} ${apellido}` : nombre);
+
+            if (!finalName || !email || !password || !(rol || role)) {
+                return res.status(400).json({
+                    message: 'Nombre, email, password y rol son obligatorios'
+                });
+            }
+
+            // Normalizar rol
+            const roleMap = {
+                admin: 'admin',
+                administrador: 'admin',
+                profesor: 'teacher',
+                teacher: 'teacher',
+                alumno: 'student',
+                student: 'student'
+            };
+
+            const finalRole = roleMap[rol || role];
+            if (!finalRole) {
+                return res.status(400).json({ message: 'Rol inválido' });
+            }
+
+            // Normalizar email
+            const normalizedEmail = email.toLowerCase().trim();
+
+            // Verificar duplicado en el MISMO tenant
+            const existingUser = await User.findOne({
+                email: normalizedEmail,
+                tenantId: req.user.tenantId
             });
-            
-            await user.save();
+
+            if (existingUser) {
+                return res.status(409).json({ message: 'El usuario ya existe' });
+            }
+
+            const passwordHash = await bcrypt.hash(password, 10);
+
+            const user = await User.create({
+                tenantId: req.user.tenantId,   // 🔒 SIEMPRE desde JWT
+                name: finalName,
+                email: normalizedEmail,
+                passwordHash,
+                role: finalRole
+            });
+
             res.status(201).json({
                 _id: user._id,
                 name: user.name,
@@ -34,83 +75,115 @@ class UserController {
                 tenantId: user.tenantId,
                 createdAt: user.createdAt
             });
+
         } catch (error) {
             res.status(400).json({ message: error.message });
         }
     }
 
-    // Get all users
+    /* =====================================================
+       GET USERS (solo tenant actual)
+    ===================================================== */
     static async getUsers(req, res) {
         try {
-            const users = await User.find().select('-passwordHash');
+            const users = await User.find({
+                tenantId: req.user.tenantId
+            }).select('-passwordHash');
+
             res.status(200).json(users);
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
     }
 
-    // Get users by tenant
-    static async getUsersByTenant(req, res) {
-        try {
-            const users = await User.find({ tenantId: req.params.tenantId }).select('-passwordHash');
-            res.status(200).json(users);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    }
-
-    // Get users by role
-    static async getUsersByRole(req, res) {
-        try {
-            const users = await User.find({ role: req.params.role }).select('-passwordHash');
-            res.status(200).json(users);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    }
-
-    // Get a single user by ID
+    /* =====================================================
+       GET USER BY ID (seguro multi-tenant)
+    ===================================================== */
     static async getUserById(req, res) {
         try {
-            const user = await User.findById(req.params.id).select('-passwordHash');
+            const user = await User.findOne({
+                _id: req.params.id,
+                tenantId: req.user.tenantId
+            }).select('-passwordHash');
+
             if (!user) {
                 return res.status(404).json({ message: 'Usuario no encontrado' });
             }
+
             res.status(200).json(user);
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
     }
 
-    // Update a user by ID
+    /* =====================================================
+       UPDATE USER
+    ===================================================== */
     static async updateUser(req, res) {
         try {
-            const updateData = { ...req.body };
-            
-            // If password is being updated, hash it
-            if (updateData.password) {
-                const saltRounds = 10;
-                updateData.passwordHash = await bcrypt.hash(updateData.password, saltRounds);
-                delete updateData.password;
+            const updateData = {};
+
+            if (req.body.name || req.body.nombre) {
+                updateData.name = req.body.name || req.body.nombre;
             }
 
-            const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true }).select('-passwordHash');
+            if (req.body.email) {
+                updateData.email = req.body.email.toLowerCase().trim();
+            }
+
+            if (req.body.password) {
+                updateData.passwordHash = await bcrypt.hash(req.body.password, 10);
+            }
+
+            if (req.body.role || req.body.rol) {
+                const roleMap = {
+                    admin: 'admin',
+                    administrador: 'admin',
+                    profesor: 'teacher',
+                    teacher: 'teacher',
+                    alumno: 'student',
+                    student: 'student'
+                };
+
+                const newRole = roleMap[req.body.role || req.body.rol];
+                if (!newRole) {
+                    return res.status(400).json({ message: 'Rol inválido' });
+                }
+
+                updateData.role = newRole;
+            }
+
+            const user = await User.findOneAndUpdate(
+                { _id: req.params.id, tenantId: req.user.tenantId },
+                updateData,
+                { new: true }
+            ).select('-passwordHash');
+
             if (!user) {
                 return res.status(404).json({ message: 'Usuario no encontrado' });
             }
+
             res.status(200).json(user);
+
         } catch (error) {
             res.status(400).json({ message: error.message });
         }
     }
 
-    // Delete a user by ID
+    /* =====================================================
+       DELETE USER
+    ===================================================== */
     static async deleteUser(req, res) {
         try {
-            const user = await User.findByIdAndDelete(req.params.id);
+            const user = await User.findOneAndDelete({
+                _id: req.params.id,
+                tenantId: req.user.tenantId
+            });
+
             if (!user) {
                 return res.status(404).json({ message: 'Usuario no encontrado' });
             }
+
             res.status(204).send();
         } catch (error) {
             res.status(500).json({ message: error.message });

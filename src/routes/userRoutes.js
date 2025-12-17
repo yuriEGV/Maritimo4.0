@@ -1,27 +1,49 @@
 import express from 'express';
-import userController from '../controllers/userController.js';
+import UserController from '../controllers/userController.js';
+import authMiddleware, { authorizeRoles } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Create a new user
-router.post('/', userController.createUser);
+/* ===============================
+   USERS (protegido)
+================================ */
 
-// Get all users
-router.get('/', userController.getUsers);
+// Crear usuario (solo admin)
+router.post(
+    '/',
+    authMiddleware,
+    authorizeRoles('admin'),
+    UserController.createUser
+);
 
-// Get users by tenant
-router.get('/tenant/:tenantId', userController.getUsersByTenant);
+// Obtener usuarios del tenant actual
+router.get(
+    '/',
+    authMiddleware,
+    UserController.getUsers
+);
 
-// Get users by role
-router.get('/role/:role', userController.getUsersByRole);
+// Obtener usuario por ID (del mismo tenant)
+router.get(
+    '/:id',
+    authMiddleware,
+    UserController.getUserById
+);
 
-// Get a single user by ID
-router.get('/:id', userController.getUserById);
+// Actualizar usuario (solo admin)
+router.put(
+    '/:id',
+    authMiddleware,
+    authorizeRoles('admin'),
+    UserController.updateUser
+);
 
-// Update a user by ID
-router.put('/:id', userController.updateUser);
-
-// Delete a user by ID
-router.delete('/:id', userController.deleteUser);
+// Eliminar usuario (solo admin)
+router.delete(
+    '/:id',
+    authMiddleware,
+    authorizeRoles('admin'),
+    UserController.deleteUser
+);
 
 export default router;
