@@ -43,4 +43,120 @@ export default class CourseController {
             });
         }
     }
+
+    static async getCourses(req, res) {
+        try {
+            const courses = await Course.find({ tenantId: req.user.tenantId })
+                .populate('teacherId', 'name email')
+                .sort({ createdAt: -1 });
+
+            return res.status(200).json(courses);
+
+        } catch (error) {
+            console.error('Error getCourses:', error);
+            return res.status(500).json({
+                message: 'Error obteniendo cursos',
+                error: error.message
+            });
+        }
+    }
+
+    static async getCoursesByTenant(req, res) {
+        try {
+            const { tenantId } = req.params;
+
+            const courses = await Course.find({ tenantId })
+                .populate('teacherId', 'name email')
+                .sort({ createdAt: -1 });
+
+            return res.status(200).json(courses);
+
+        } catch (error) {
+            console.error('Error getCoursesByTenant:', error);
+            return res.status(500).json({
+                message: 'Error obteniendo cursos por tenant',
+                error: error.message
+            });
+        }
+    }
+
+    static async getCourseById(req, res) {
+        try {
+            const { id } = req.params;
+
+            const course = await Course.findOne({
+                _id: id,
+                tenantId: req.user.tenantId
+            }).populate('teacherId', 'name email');
+
+            if (!course) {
+                return res.status(404).json({
+                    message: 'Curso no encontrado'
+                });
+            }
+
+            return res.status(200).json(course);
+
+        } catch (error) {
+            console.error('Error getCourseById:', error);
+            return res.status(500).json({
+                message: 'Error obteniendo curso',
+                error: error.message
+            });
+        }
+    }
+
+    static async updateCourse(req, res) {
+        try {
+            const { id } = req.params;
+            const { name, description, teacherId } = req.body;
+
+            const course = await Course.findOneAndUpdate(
+                { _id: id, tenantId: req.user.tenantId },
+                { name, description, teacherId },
+                { new: true, runValidators: true }
+            ).populate('teacherId', 'name email');
+
+            if (!course) {
+                return res.status(404).json({
+                    message: 'Curso no encontrado'
+                });
+            }
+
+            return res.status(200).json(course);
+
+        } catch (error) {
+            console.error('Error updateCourse:', error);
+            return res.status(400).json({
+                message: 'Error actualizando curso',
+                error: error.message
+            });
+        }
+    }
+
+    static async deleteCourse(req, res) {
+        try {
+            const { id } = req.params;
+
+            const course = await Course.findOneAndDelete({
+                _id: id,
+                tenantId: req.user.tenantId
+            });
+
+            if (!course) {
+                return res.status(404).json({
+                    message: 'Curso no encontrado'
+                });
+            }
+
+            return res.status(204).send();
+
+        } catch (error) {
+            console.error('Error deleteCourse:', error);
+            return res.status(500).json({
+                message: 'Error eliminando curso',
+                error: error.message
+            });
+        }
+    }
 }

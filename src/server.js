@@ -3,15 +3,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import apiRoutes from './routes/index.js';
 import morgan from 'morgan';
-import path from 'path';
-import fs from 'fs';
-import os from 'os';
 import errorMiddleware from './middleware/errorMiddleware.js';
 import connectDB from './config/db.js';
 import { fileURLToPath } from 'url';
 import reportRoutes from './routes/reportRoutes.js';
 import authMiddleware from './middleware/authMiddleware.js';
-import courseRoutes from './routes/courseRoutes.js';
 
 
 
@@ -25,7 +21,6 @@ app.use(morgan('dev'));
 
 // Rutas protegidas específicas PRIMERO
 app.use('/api/reports', authMiddleware, reportRoutes);
-app.use('/api/courses', authMiddleware, courseRoutes);
 
 // Rutas generales DESPUÉS
 app.use('/api', apiRoutes);
