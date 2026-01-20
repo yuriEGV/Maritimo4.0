@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Edit, Trash2, Search, User, Mail, Shield, School } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Shield } from 'lucide-react';
 
 interface UserData {
     _id: string;
@@ -10,6 +10,7 @@ interface UserData {
     email: string;
     role: 'admin' | 'sostenedor' | 'teacher' | 'student';
     rut?: string;
+    password?: string;
 }
 
 const UsersPage = () => {
@@ -42,8 +43,8 @@ const UsersPage = () => {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const payload = { ...currentUserData };
-            if (password) payload['password'] = password;
+            const payload: any = { ...currentUserData };
+            if (password) payload.password = password;
 
             if (modalMode === 'create') {
                 await api.post('/users', payload);
