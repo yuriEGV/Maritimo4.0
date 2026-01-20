@@ -14,8 +14,29 @@ import authMiddleware from './middleware/authMiddleware.js';
 
 const app = express();
 
-// Middleware
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://maritimo4-0-a1mr.vercel.app',
+  'https://maritimo4-0.vercel.app'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permitir requests sin origen (como Postman o Server-to-Server)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id']
+}));
+app.options('*', cors()); // Enable pre-flight for all routes
 
 // Middleware
 // Capture raw body for webhook signature verification
@@ -44,6 +65,8 @@ import bcrypt from 'bcryptjs';
 
 app.get('/setup-admin', async (req, res) => {
   try {
+    await connectDB(); // Ensure DB is connected for Vercel
+
     let tenant = await Tenant.findOne({ name: 'Einsmart' });
     if (!tenant) {
       tenant = await Tenant.create({
@@ -75,7 +98,8 @@ app.get('/setup-admin', async (req, res) => {
       return res.json({ message: 'User yuri@einsmart.cl created as admin.' });
     }
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error("Setup Error:", error);
+    return res.status(500).json({ error: error.message || 'Error occurred' });
   }
 });
 // -----------------------------
