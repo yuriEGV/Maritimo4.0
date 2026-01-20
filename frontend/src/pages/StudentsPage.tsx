@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Edit, Trash2, Search, User, Mail, School } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Mail, School } from 'lucide-react';
 
 interface Student {
     _id: string;
