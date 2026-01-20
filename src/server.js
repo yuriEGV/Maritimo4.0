@@ -12,31 +12,15 @@ import authMiddleware from './middleware/authMiddleware.js';
 
 const app = express();
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'https://maritimo4-0-a1mr.vercel.app',
-  'https://maritimo4-0.vercel.app'
-];
-
-// Manual CORS Middleware
+// Hardcoded CORS Fix as requested by User
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
+  res.setHeader('Access-Control-Allow-Origin', 'https://maritimo4-0-ko2s.vercel.app');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // Allow all vercel.app domains and localhost
-  if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  }
-
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id');
-
-  // Handle preflight
   if (req.method === 'OPTIONS') {
-    return res.status(204).end();
+    return res.status(200).end();
   }
-
   next();
 });
 
