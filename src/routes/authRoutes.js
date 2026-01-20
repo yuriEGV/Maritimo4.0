@@ -32,7 +32,9 @@ import {
     login,
     invalidateToken,
     obtenerPerfil,
-    actualizarPerfil
+    actualizarPerfil,
+    recuperarPassword,
+    resetPassword
 } from '../controllers/authController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 
@@ -43,6 +45,8 @@ const router = express.Router();
 ================================ */
 router.post('/registro', registrar);
 router.post('/login', login);
+router.post('/recover-password', recuperarPassword);
+router.post('/reset-password', resetPassword);
 
 /* ===============================
    RUTAS PROTEGIDAS
