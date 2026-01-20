@@ -12,7 +12,14 @@ import authMiddleware from './middleware/authMiddleware.js';
 
 const app = express();
 
-// Hardcoded CORS Fix as requested by User
+// Final CORS Fix as requested by User (Combining Package + Manual Headers)
+app.use(cors({
+  origin: 'https://maritimo4-0-ko2s.vercel.app',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', 'https://maritimo4-0-ko2s.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
