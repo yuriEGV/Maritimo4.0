@@ -14,7 +14,7 @@ if (!mongoUri) {
     process.exit(1);
 }
 
-const createAdmin = async () => {
+const createAdmins = async () => {
     try {
         await mongoose.connect(mongoUri);
         console.log('✅ Connected to MongoDB');
@@ -32,36 +32,36 @@ const createAdmin = async () => {
             console.log('✅ Tenant "Einsmart" found.');
         }
 
-        // 2. Ensure User
-        const email = 'yuri@einsmart.cl';
-        const password = '123456';
+        const admins = [
+            { name: 'Yuri Admin', email: 'yuri@einsmart.cl', rut: '1-9' },
+            { name: 'Vicente Admin', email: 'vicente@einsmart.cl', rut: '2-7' }
+        ];
 
-        // Remove existing to be clean? Or update? Update is safer.
-        let user = await User.findOne({ email });
+        for (const admin of admins) {
+            const password = '123456';
+            const passwordHash = await bcrypt.hash(password, 10);
 
-        const passwordHash = await bcrypt.hash(password, 10);
-
-        if (user) {
-            console.log(`User ${email} found. Updating to Admin...`);
-            user.passwordHash = passwordHash;
-            user.role = 'admin';
-            user.name = 'Yuri Admin';
-            user.tenantId = tenant._id;
-            await user.save();
-            console.log('✅ User updated successfully.');
-        } else {
-            console.log(`Creating user ${email}...`);
-            // Check if rut conflicts exist (although sparse)
-
-            user = await User.create({
-                name: 'Yuri Admin',
-                email,
-                passwordHash,
-                role: 'admin',
-                tenantId: tenant._id,
-                rut: '1-9' // Dummy RUT for admin
-            });
-            console.log('✅ User created successfully.');
+            let user = await User.findOne({ email: admin.email });
+            if (user) {
+                console.log(`User ${admin.email} found. Updating...`);
+                user.passwordHash = passwordHash;
+                user.role = 'admin';
+                user.name = admin.name;
+                user.tenantId = tenant._id;
+                await user.save();
+                console.log(`✅ ${admin.name} updated successfully.`);
+            } else {
+                console.log(`Creating user ${admin.email}...`);
+                await User.create({
+                    name: admin.name,
+                    email: admin.email,
+                    passwordHash,
+                    role: 'admin',
+                    tenantId: tenant._id,
+                    rut: admin.rut
+                });
+                console.log(`✅ ${admin.name} created successfully.`);
+            }
         }
 
     } catch (error) {
@@ -72,4 +72,4 @@ const createAdmin = async () => {
     }
 };
 
-createAdmin();
+createAdmins();

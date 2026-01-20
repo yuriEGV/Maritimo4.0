@@ -68,27 +68,36 @@ app.get('/setup-admin', async (req, res) => {
       });
     }
 
-    const email = 'yuri@einsmart.cl';
-    const password = '123456';
-    let user = await User.findOne({ email });
+    const admins = [
+      { name: 'Yuri Admin', email: 'yuri@einsmart.cl', rut: '1-9' },
+      { name: 'Vicente Admin', email: 'vicente@einsmart.cl', rut: '2-7' }
+    ];
 
-    if (user) {
-      user.passwordHash = await bcrypt.hash(password, 10);
-      user.role = 'admin';
-      user.tenantId = tenant._id;
-      await user.save();
-      return res.json({ message: 'User yuri@einsmart.cl updated to admin.' });
-    } else {
+    const results = [];
+    for (const admin of admins) {
+      const password = '123456';
       const passwordHash = await bcrypt.hash(password, 10);
-      user = await User.create({
-        name: 'Admin Einsmart',
-        email,
-        passwordHash,
-        role: 'admin',
-        tenantId: tenant._id
-      });
-      return res.json({ message: 'User yuri@einsmart.cl created as admin.' });
+      let user = await User.findOne({ email: admin.email });
+
+      if (user) {
+        user.passwordHash = passwordHash;
+        user.role = 'admin';
+        user.tenantId = tenant._id;
+        await user.save();
+        results.push(`${admin.email} updated`);
+      } else {
+        await User.create({
+          name: admin.name,
+          email: admin.email,
+          passwordHash,
+          role: 'admin',
+          tenantId: tenant._id,
+          rut: admin.rut
+        });
+        results.push(`${admin.email} created`);
+      }
     }
+    return res.json({ message: 'Setup complete', details: results });
   } catch (error) {
     console.error("Setup Error:", error);
     return res.status(500).json({ error: error.message || 'Error occurred' });
