@@ -16,8 +16,10 @@ export const usePermissions = (): Permissions => {
     const role = user?.role || 'guest';
 
     return {
-        canEditProfile: true, // All logged in users can edit their profile
+        user,
+        canEditProfile: true,
         canManageStudents: role === 'admin' || role === 'sostenedor',
+        canManageUsers: role === 'admin' || role === 'sostenedor',
         canEditAnnotations: role === 'admin' || role === 'teacher' || role === 'sostenedor',
         canViewSensitiveData: role === 'admin' || role === 'sostenedor',
         isSuperAdmin: role === 'admin' || role === 'sostenedor',
