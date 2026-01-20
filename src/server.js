@@ -37,6 +37,49 @@ app.get('/', (req, res) => {
 // Middleware de errores SIEMPRE AL FINAL
 app.use(errorMiddleware);
 
+// --- TEMPORARY SETUP ROUTE ---
+import User from './models/userModel.js';
+import Tenant from './models/tenantModel.js';
+import bcrypt from 'bcryptjs';
+
+app.get('/setup-admin', async (req, res) => {
+  try {
+    let tenant = await Tenant.findOne({ name: 'Einsmart' });
+    if (!tenant) {
+      tenant = await Tenant.create({
+        name: 'Einsmart',
+        domain: 'einsmart.cl',
+        theme: { primaryColor: '#3b82f6', secondaryColor: '#1e293b' }
+      });
+    }
+
+    const email = 'yuri@einsmart.cl';
+    const password = '123456';
+    let user = await User.findOne({ email });
+
+    if (user) {
+      user.passwordHash = await bcrypt.hash(password, 10);
+      user.role = 'admin';
+      user.tenantId = tenant._id;
+      await user.save();
+      return res.json({ message: 'User yuri@einsmart.cl updated to admin.' });
+    } else {
+      const passwordHash = await bcrypt.hash(password, 10);
+      user = await User.create({
+        name: 'Admin Einsmart',
+        email,
+        passwordHash,
+        role: 'admin',
+        tenantId: tenant._id
+      });
+      return res.json({ message: 'User yuri@einsmart.cl created as admin.' });
+    }
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+// -----------------------------
+
 
 // Iniciar servidor solo en local
 const __filename = fileURLToPath(import.meta.url);
