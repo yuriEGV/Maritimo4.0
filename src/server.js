@@ -10,8 +10,6 @@ import { fileURLToPath } from 'url';
 import reportRoutes from './routes/reportRoutes.js';
 import authMiddleware from './middleware/authMiddleware.js';
 
-
-
 const app = express();
 
 const allowedOrigins = [
@@ -21,26 +19,31 @@ const allowedOrigins = [
   'https://maritimo4-0.vercel.app'
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
     // Permitir requests sin origen (como Postman o Server-to-Server)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+    // Permitir localhost y dominios de Vercel por RegExp
+    const isAllowed = allowedOrigins.indexOf(origin) !== -1 || /\.vercel\.app$/.test(origin);
+
+    if (isAllowed) {
       callback(null, true);
     } else {
+      console.warn(`Bloqueado por CORS: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id']
-}));
-app.options('*', cors()); // Enable pre-flight for all routes
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // CRITICAL: Share config for preflight
 
 // Middleware
 // Capture raw body for webhook signature verification
-// Middlewares base
 app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf && buf.toString(); } }));
 app.use(morgan('dev'));
 
