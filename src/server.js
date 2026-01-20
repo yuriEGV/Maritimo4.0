@@ -19,28 +19,26 @@ const allowedOrigins = [
   'https://maritimo4-0.vercel.app'
 ];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Permitir requests sin origen (como Postman o Server-to-Server)
-    if (!origin) return callback(null, true);
+// Manual CORS Middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
 
-    // Permitir localhost y dominios de Vercel por RegExp
-    const isAllowed = allowedOrigins.indexOf(origin) !== -1 || /\.vercel\.app$/.test(origin);
+  // Allow all vercel.app domains and localhost
+  if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  }
 
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.warn(`Bloqueado por CORS: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id']
-};
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id');
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // CRITICAL: Share config for preflight
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
+  next();
+});
 
 // Middleware
 // Capture raw body for webhook signature verification
