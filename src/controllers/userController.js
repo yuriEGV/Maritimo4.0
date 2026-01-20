@@ -30,6 +30,7 @@ class UserController {
             const roleMap = {
                 admin: 'admin',
                 administrador: 'admin',
+                sostenedor: 'sostenedor',
                 profesor: 'teacher',
                 teacher: 'teacher',
                 alumno: 'student',

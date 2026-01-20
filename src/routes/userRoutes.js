@@ -8,11 +8,11 @@ const router = express.Router();
    USERS (protegido)
 ================================ */
 
-// Crear usuario (solo admin)
+// Crear usuario (admin o sostenedor)
 router.post(
     '/',
     authMiddleware,
-    authorizeRoles('admin'),
+    authorizeRoles('admin', 'sostenedor'),
     UserController.createUser
 );
 
@@ -30,19 +30,19 @@ router.get(
     UserController.getUserById
 );
 
-// Actualizar usuario (solo admin)
+// Actualizar usuario
 router.put(
     '/:id',
     authMiddleware,
-    authorizeRoles('admin'),
+    authorizeRoles('admin', 'sostenedor'),
     UserController.updateUser
 );
 
-// Eliminar usuario (solo admin)
+// Eliminar usuario
 router.delete(
     '/:id',
     authMiddleware,
-    authorizeRoles('admin'),
+    authorizeRoles('admin', 'sostenedor'),
     UserController.deleteUser
 );
 
