@@ -2,8 +2,10 @@
 import { useAuth } from '../context/AuthContext';
 
 export interface Permissions {
+    user: any;
     canEditProfile: boolean;
     canManageStudents: boolean;
+    canManageUsers: boolean;
     canEditAnnotations: boolean;
     canViewSensitiveData: boolean;
     isSuperAdmin: boolean;

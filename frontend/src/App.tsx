@@ -7,6 +7,8 @@ import GradesPage from './pages/GradesPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import PaymentsPage from './pages/PaymentsPage';
+import StudentsPage from './pages/StudentsPage';
+import UsersPage from './pages/UsersPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -20,6 +22,8 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/students" element={<StudentsPage />} />
+            <Route path="/users" element={<UsersPage />} />
             <Route path="/annotations" element={<AnnotationsPage />} />
             <Route path="/grades" element={<GradesPage />} />
             <Route path="/payments" element={<PaymentsPage />} />
