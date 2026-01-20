@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext';
 import { CreditCard, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -14,7 +14,7 @@ interface Payment {
 }
 
 const PaymentsPage: React.FC = () => {
-    const { user } = useAuth();
+    // const { user } = useAuth(); // Unused
     const [payments, setPayments] = useState<Payment[]>([]);
     const [loading, setLoading] = useState(true);
 
