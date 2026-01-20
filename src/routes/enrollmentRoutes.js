@@ -1,38 +1,32 @@
 import express from 'express';
 import enrollmentController from '../controllers/enrollmentController.js';
 import upload from '../middleware/uploadMiddleware.js';
+import { authorizeRoles } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Create a new enrollment
-// Create a new enrollment. Accept multiple files via field `documents`.
-router.post('/', upload.array('documents'), enrollmentController.createEnrollment);
-
-// Get all enrollments
+// Read Routes - Authenticated Users (Everyone can see enrollments? Maybe strict? 
+// For now, let's allow read for all authenticated, assuming controller filters)
 router.get('/', enrollmentController.getEnrollments);
-
-// Get enrollments by student (estudiante)
 router.get('/estudiante/:estudianteId', enrollmentController.getEnrollmentsByStudent);
-
-// Get enrollments by course
 router.get('/course/:courseId', enrollmentController.getEnrollmentsByCourse);
-
-// Get enrollments by tenant
 router.get('/tenant/:tenantId', enrollmentController.getEnrollmentsByTenant);
-
-// Get enrollments by period
 router.get('/period/:period', enrollmentController.getEnrollmentsByPeriod);
-
-// Get a single enrollment by ID
 router.get('/:id', enrollmentController.getEnrollmentById);
 
-// Update an enrollment by ID
-router.put('/:id', enrollmentController.updateEnrollment);
+/* Restricted Routes: Admin, Sostenedor, Teacher */
+const STAFF_ROLES = ['admin', 'sostenedor', 'teacher'];
 
-// Add documents to an existing enrollment
-router.post('/:id/documents', upload.array('documents'), enrollmentController.addDocuments);
+// Create
+router.post('/', authorizeRoles(...STAFF_ROLES), upload.array('documents'), enrollmentController.createEnrollment);
 
-// Delete an enrollment by ID
-router.delete('/:id', enrollmentController.deleteEnrollment);
+// Update
+router.put('/:id', authorizeRoles(...STAFF_ROLES), enrollmentController.updateEnrollment);
+
+// Add Docs
+router.post('/:id/documents', authorizeRoles(...STAFF_ROLES), upload.array('documents'), enrollmentController.addDocuments);
+
+// Delete
+router.delete('/:id', authorizeRoles(...STAFF_ROLES), enrollmentController.deleteEnrollment);
 
 export default router;

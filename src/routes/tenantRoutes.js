@@ -1,18 +1,20 @@
 import express from 'express';
 import tenantController from '../controllers/tenantController.js';
-import authMiddleware from '../middleware/authMiddleware.js';
+import authMiddleware, { authorizeRoles } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
-
-// Crear Tenant — público
-router.post('/', tenantController.createTenant);
 
 // Protegidas
 router.use(authMiddleware);
 
+// Crear Tenant - Solo Admin o Sostenedor
+router.post('/', authorizeRoles('admin', 'sostenedor'), tenantController.createTenant);
+
 router.get('/', tenantController.getTenants);
 router.get('/:id', tenantController.getTenantById);
-router.put('/:id', tenantController.updateTenant);
-router.delete('/:id', tenantController.deleteTenant);
+
+// Update/Delete - Solo Admin o Sostenedor
+router.put('/:id', authorizeRoles('admin', 'sostenedor'), tenantController.updateTenant);
+router.delete('/:id', authorizeRoles('admin', 'sostenedor'), tenantController.deleteTenant);
 
 export default router;
