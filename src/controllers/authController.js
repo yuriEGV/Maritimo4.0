@@ -196,6 +196,7 @@ function sanitizeUser(user) {
         _id: user._id,
         name: user.name,
         email: user.email,
+        rut: user.rut,
         role: user.role,
         tenantId: user.tenantId,
         createdAt: user.createdAt,
@@ -214,19 +215,25 @@ function generarToken(user) {
 ================================ */
 async function registrar(req, res) {
     try {
-        const { name, email, password, role = 'teacher', tenantId } = req.body;
+        const { name, email, rut, password, role = 'teacher', tenantId } = req.body;
 
-        if (!name || !email || !password || !tenantId) {
+        if (!name || (!email && !rut) || !password || !tenantId) {
             return res.status(400).json({
-                message: 'Nombre, email, contraseña y tenantId son obligatorios'
+                message: 'Nombre, email/rut, contraseña y tenantId son obligatorios'
             });
         }
 
-        const normalizedEmail = email.toLowerCase().trim();
+        const normalizedEmail = email ? email.toLowerCase().trim() : undefined;
+        const normalizedRut = rut ? rut.toLowerCase().trim() : undefined;
 
-        const existingUser = await User.findOne({ email: normalizedEmail });
+        // Check uniqueness for both if provided
+        const query = { $or: [] };
+        if (normalizedEmail) query.$or.push({ email: normalizedEmail });
+        if (normalizedRut) query.$or.push({ rut: normalizedRut });
+
+        const existingUser = await User.findOne(query);
         if (existingUser) {
-            return res.status(409).json({ message: 'El correo ya está registrado' });
+            return res.status(409).json({ message: 'El correo o RUT ya está registrado' });
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
@@ -234,6 +241,7 @@ async function registrar(req, res) {
         const user = await User.create({
             name,
             email: normalizedEmail,
+            rut: normalizedRut,
             passwordHash,
             role,
             tenantId
@@ -262,18 +270,25 @@ async function login(req, res) {
     try {
         console.log('LOGIN BODY:', req.body); // [DEBUG]
 
-        const { email, password } = req.body;
+        const { email, rut, password } = req.body;
 
-        if (!email || !password) {
+        if ((!email && !rut) || !password) {
             return res.status(400).json({
-                message: 'Email y contraseña son obligatorios'
+                message: 'Email/RUT y contraseña son obligatorios'
             });
         }
 
-        const normalizedEmail = email.toLowerCase().trim();
+        const normalizedEmail = email ? email.toLowerCase().trim() : undefined;
+        const normalizedRut = rut ? rut.toLowerCase().trim() : undefined;
 
-        const user = await User.findOne({ email: normalizedEmail });
-        console.log('USER FOUND:', user ? user.email : null); // [DEBUG]
+        let user;
+        if (normalizedEmail) {
+            user = await User.findOne({ email: normalizedEmail });
+        } else if (normalizedRut) {
+            user = await User.findOne({ rut: normalizedRut });
+        }
+
+        console.log('USER FOUND:', user ? (user.email || user.rut) : null); // [DEBUG]
 
         if (!user) {
             return res.status(401).json({ message: 'Credenciales inválidas' });

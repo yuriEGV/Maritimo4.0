@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogOut } from 'lucide-react';
 
@@ -13,9 +13,12 @@ const Layout = () => {
                     <h1 className="text-xl font-bold text-gray-800">Maritimo 4.0</h1>
                 </div>
                 <nav className="flex-1 p-4 space-y-2">
-                    <a href="/" className="block p-2 rounded hover:bg-gray-100 text-gray-700">Dashboard</a>
-                    <a href="/students" className="block p-2 rounded hover:bg-gray-100 text-gray-700">Estudiantes</a>
-                    <a href="/enrollments" className="block p-2 rounded hover:bg-gray-100 text-gray-700">Matrículas</a>
+                    <Link to="/" className="block p-2 rounded hover:bg-gray-100 text-gray-700">Dashboard</Link>
+                    <Link to="/students" className="block p-2 rounded hover:bg-gray-100 text-gray-700">Estudiantes</Link>
+                    <Link to="/enrollments" className="block p-2 rounded hover:bg-gray-100 text-gray-700">Matrículas</Link>
+                    <Link to="/annotations" className="block p-2 rounded hover:bg-gray-100 text-gray-700">Anotaciones</Link>
+                    <Link to="/grades" className="block p-2 rounded hover:bg-gray-100 text-gray-700">Notas</Link>
+                    <Link to="/payments" className="block p-2 rounded hover:bg-gray-100 text-gray-700">Pagos</Link>
                 </nav>
                 <div className="p-4 border-t border-gray-200">
                     <div className="mb-2 text-sm text-gray-600">User: {user?.name || 'Admin'}</div>

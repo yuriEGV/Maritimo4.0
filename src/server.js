@@ -1,5 +1,6 @@
 import 'dotenv/config'; // Importar primero para cargar variables de entorno
 import express from 'express';
+import cors from 'cors';
 import mongoose from 'mongoose';
 import apiRoutes from './routes/index.js';
 import morgan from 'morgan';
@@ -12,6 +13,9 @@ import authMiddleware from './middleware/authMiddleware.js';
 
 
 const app = express();
+
+// Middleware
+app.use(cors());
 
 // Middleware
 // Capture raw body for webhook signature verification

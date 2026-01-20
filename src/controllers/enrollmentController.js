@@ -23,6 +23,24 @@ class EnrollmentController {
                 });
             }
 
+            // [NUEVO] Verificar morosidad
+            const overduePayments = await import('../models/paymentModel.js').then(m => m.default.countDocuments({
+                estudianteId: studentId,
+                estado: 'vencido'
+            }));
+
+            if (overduePayments > 0) {
+                const { superKey } = req.body;
+                const REQUIRED_KEY = process.env.SUPER_KEY || 'admin123'; // Fallback seguro
+
+                if (superKey !== REQUIRED_KEY) {
+                    return res.status(403).json({
+                        message: `El estudiante tiene ${overduePayments} pagos vencidos. Se requiere Super Clave para matricular.`,
+                        code: 'ARREARS_LOCK'
+                    });
+                }
+            }
+
             const enrollment = new Enrollment({
                 tenantId: req.user.tenantId,   // SIEMPRE desde JWT
                 estudianteId: studentId,       // normalización aquí
