@@ -256,9 +256,11 @@ async function registrar(req, res) {
         });
 
     } catch (error) {
+        console.error('❌ Error en registro:', error);
         return res.status(500).json({
             message: 'Error al registrar usuario',
-            error: error.message
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 }
@@ -379,12 +381,71 @@ async function actualizarPerfil(req, res) {
 }
 
 /* ===============================
-   LOGOUT / INVALIDATE
+   PASSWORD RECOVERY
 ================================ */
-function invalidateToken(req, res) {
-    const token = req.headers.authorization?.split(' ')[1];
-    tokenStore.add(token);
-    return res.json({ message: 'Sesión cerrada correctamente' });
+import { sendPasswordRecoveryEmail } from '../services/emailService.js';
+
+async function recuperarPassword(req, res) {
+    try {
+        const { email, rut } = req.body;
+
+        // Allow recovery by Email or RUT
+        const query = {};
+        if (email) query.email = email.toLowerCase().trim();
+        else if (rut) query.rut = rut.toLowerCase().trim();
+        else return res.status(400).json({ message: 'Email o RUT requerido' });
+
+        const user = await User.findOne(query);
+
+        if (!user || !user.email) {
+            // Security: Don't reveal if user exists using 404, just say sent if format is valid.
+            // But for now, returning 404 might be easier for debugging.
+            return res.status(404).json({ message: 'Usuario no encontrado o sin email registrado' });
+        }
+
+        // Generate a recovery token (short lived)
+        const token = jwt.sign(
+            { userId: user._id, type: 'recovery' },
+            JWT_SECRET,
+            { expiresIn: '15m' }
+        );
+
+        await sendPasswordRecoveryEmail(user.email, token);
+
+        return res.json({ message: 'Correo de recuperación enviado' });
+
+    } catch (error) {
+        console.error('Recover Password Error:', error);
+        return res.status(500).json({ message: 'Error al procesar recuperación', error: error.message });
+    }
+}
+
+async function resetPassword(req, res) {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({ message: 'Token y nueva contraseña requeridos' });
+        }
+
+        const payload = jwt.verify(token, JWT_SECRET);
+        if (payload.type !== 'recovery') {
+            return res.status(400).json({ message: 'Token inválido para recuperación' });
+        }
+
+        const user = await User.findById(payload.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        user.passwordHash = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        return res.json({ message: 'Contraseña actualizada correctamente' });
+
+    } catch (error) {
+        return res.status(400).json({ message: 'Token inválido o expirado' });
+    }
 }
 
 export {
@@ -392,5 +453,7 @@ export {
     login,
     obtenerPerfil,
     actualizarPerfil,
-    invalidateToken
+    invalidateToken,
+    recuperarPassword,
+    resetPassword
 };

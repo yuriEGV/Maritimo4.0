@@ -8,14 +8,14 @@ class AnotacionController {
             const { estudianteId, tipo, titulo, descripcion, fechaOcurrencia, medidas, archivos } = req.body;
 
             if (!estudianteId || !tipo || !titulo || !descripcion) {
-                return res.status(400).json({ 
-                    message: 'Estudiante, tipo, título y descripción son obligatorios' 
+                return res.status(400).json({
+                    message: 'Estudiante, tipo, título y descripción son obligatorios'
                 });
             }
 
             if (!['positiva', 'negativa'].includes(tipo)) {
-                return res.status(400).json({ 
-                    message: 'El tipo debe ser "positiva" o "negativa"' 
+                return res.status(400).json({
+                    message: 'El tipo debe ser "positiva" o "negativa"'
                 });
             }
 
@@ -40,8 +40,12 @@ class AnotacionController {
                 anotacion
             });
         } catch (error) {
-            console.error('❌ Error al crear anotación:', error);
-            res.status(500).json({ message: 'Error al crear anotación', error: error.message });
+            console.error('❌ Error al crear anotación (FULL):', error);
+            res.status(500).json({
+                message: 'Error al crear anotación',
+                error: error.message,
+                details: error.name === 'ValidationError' ? error.errors : undefined
+            });
         }
     }
 
@@ -131,8 +135,8 @@ class AnotacionController {
                 .populate('creadoPor', 'name email role');
 
             if (!anotacion) {
-                return res.status(404).json({ 
-                    message: 'Anotación no encontrada o no pertenece a tu tenant' 
+                return res.status(404).json({
+                    message: 'Anotación no encontrada o no pertenece a tu tenant'
                 });
             }
 
@@ -151,8 +155,8 @@ class AnotacionController {
             });
 
             if (!anotacion) {
-                return res.status(404).json({ 
-                    message: 'Anotación no encontrada o no pertenece a tu tenant' 
+                return res.status(404).json({
+                    message: 'Anotación no encontrada o no pertenece a tu tenant'
                 });
             }
 
