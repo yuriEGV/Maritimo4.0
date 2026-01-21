@@ -20,7 +20,7 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, x-tenant-id, X-Requested-With, Accept"
+          "value": "Content-Type, Authorization, x-tenant-id, X-Requested-With, Accept, X-CSRF-Token"
         },
         {
           "key": "Access-Control-Allow-Credentials",
@@ -29,10 +29,14 @@
       ]
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "src/server.js"
+      "source": "/api/(.*)",
+      "destination": "/src/server.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "env": {
