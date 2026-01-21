@@ -12,31 +12,33 @@ import authMiddleware from './middleware/authMiddleware.js';
 
 const app = express();
 
-// Consolidated CORS configuration
-const allowedOrigins = [
-  'https://maritimo4-0-ko2s.vercel.app',
-  'https://maritimo4-0.vercel.app'
-];
+// --- RESILIENT CORS MIDDLEWARE ---
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
+  // Dynamic origin matching for Vercel and Localhost
+  const isVercel = origin && (origin.endsWith('.vercel.app') || origin.endsWith('.vercel.sh'));
+  const isLocal = origin && (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1'));
 
-    const isVercel = /\.vercel\.app$/.test(origin);
-    const isLocal = origin.startsWith('http://localhost');
+  if (isVercel || isLocal) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // Fallback for safety during preflight if no origin header (unlikely in browser)
+    res.setHeader('Access-Control-Allow-Origin', 'https://maritimo4-0-ko2s.vercel.app');
+  }
 
-    if (isVercel || isLocal || process.env.NODE_ENV === 'development') {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id', 'X-Requested-With', 'Accept'],
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, X-Requested-With, Accept, X-CSRF-Token');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400'); // Cache preflight for 24h
+
+  // Handle Preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+// ---------------------------------
 
 
 // Middleware
