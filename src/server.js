@@ -1,5 +1,4 @@
-```
-import 'dotenv/config'; // Importar primero para cargar variables de entorno
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
@@ -94,7 +93,7 @@ app.get('/setup-admin', async (req, res) => {
         user.role = 'admin';
         user.tenantId = tenant._id;
         await user.save();
-        results.push(`${ admin.email } updated`);
+        results.push(`${admin.email} updated`);
       } else {
         await User.create({
           name: admin.name,
@@ -104,7 +103,7 @@ app.get('/setup-admin', async (req, res) => {
           tenantId: tenant._id,
           rut: admin.rut
         });
-        results.push(`${ admin.email } created`);
+        results.push(`${admin.email} created`);
       }
     }
     return res.json({ message: 'Setup complete', details: results });
@@ -124,15 +123,15 @@ if (process.argv[1] === __filename) {
 
   connectDB()
     .then(() => {
-      console.log(`✅ MongoDB conectado a: ${ mongoose.connection.host } `);
+      console.log(`✅ MongoDB conectado a: ${mongoose.connection.host} `);
 
       app.listen(PORT, () => {
         console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
       });
     })
-    .catch (err => {
-  console.error('❌ Error conectando a MongoDB:', err.message);
-});
+    .catch(err => {
+      console.error('❌ Error conectando a MongoDB:', err.message);
+    });
 }
 
 export default app;
