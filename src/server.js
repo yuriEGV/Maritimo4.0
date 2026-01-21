@@ -12,24 +12,28 @@ import authMiddleware from './middleware/authMiddleware.js';
 
 const app = express();
 
-// Final CORS Fix as requested by User (Combining Package + Manual Headers)
+// Consolidated CORS configuration
+const allowedOrigins = [
+  'https://maritimo4-0-ko2s.vercel.app',
+  'https://maritimo4-0.vercel.app'
+];
+
 app.use(cors({
-  origin: 'https://maritimo4-0-ko2s.vercel.app',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id', 'X-Requested-With', 'Accept'],
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
 
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://maritimo4-0-ko2s.vercel.app');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
 
 // Middleware
 // Capture raw body for webhook signature verification
