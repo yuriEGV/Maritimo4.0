@@ -1,11 +1,12 @@
 import Payment from '../models/paymentModel.js';
 import Tariff from '../models/tariffModel.js';
+import paymentService from '../services/paymentService.js';
 
 class PaymentController {
 
   static async createPayment(req, res) {
     try {
-      const { estudianteId, apoderadoId, tariffId, fechaVencimiento } = req.body;
+      const { estudianteId, apoderadoId, tariffId, provider, metadata } = req.body;
       const tenantId = req.user.tenantId;
 
       if (!estudianteId || !tariffId) {
@@ -14,28 +15,17 @@ class PaymentController {
         });
       }
 
-      const tariff = await Tariff.findOne({ _id: tariffId, tenantId });
-      if (!tariff) {
-        return res.status(404).json({ message: 'Tarifa no encontrada' });
-      }
-
-      const payment = await Payment.create({
-        estudianteId,
-        apoderadoId,
+      // Delegate to PaymentService which handles MP integration
+      const result = await paymentService.createPaymentFromTariff({
         tenantId,
-        tariffId: tariff._id,
-
-        // ✅ USAR CAMPOS REALES DE TARIFA
-        concepto: tariff.name,     // ← ESTE ERA EL ERROR
-        amount: tariff.amount,     // ← ESTE ERA EL ERROR
-
-        metodoPago: tariff.method || 'transferencia',
-        estado: 'pendiente',
-        fechaVencimiento
+        estudianteId,
+        tariffId,
+        provider: provider || 'manual', // default to manual/transfer if not specified? Or enforce?
+        // If provider is 'mercadopago', service handles preference creation
+        metadata: { ...metadata, apoderadoId }
       });
 
-
-      res.status(201).json(payment);
+      res.status(201).json(result);
 
     } catch (error) {
       console.error('Payment error:', error);
@@ -44,7 +34,11 @@ class PaymentController {
   }
 
   static async listPayments(req, res) {
-    const payments = await Payment.find({ tenantId: req.user.tenantId });
+    const query = (req.user.role === 'admin')
+      ? {}
+      : { tenantId: req.user.tenantId };
+
+    const payments = await Payment.find(query);
     res.json(payments);
   }
 

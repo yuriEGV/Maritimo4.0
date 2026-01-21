@@ -97,6 +97,52 @@ class TenantController {
             return res.status(500).json({ message: error.message });
         }
     }
+    // Get current user's tenant (Settings)
+    static async getMyTenant(req, res) {
+        try {
+            await connectDB();
+            const tenantId = req.user.tenantId;
+
+            if (!tenantId) {
+                return res.status(400).json({ message: 'Usuario no tiene institución asociada' });
+            }
+
+            const tenant = await Tenant.findById(tenantId);
+            if (!tenant) {
+                return res.status(404).json({ message: 'Institución no encontrada' });
+            }
+
+            return res.status(200).json(tenant);
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
+    // Update current user's tenant
+    static async updateMyTenant(req, res) {
+        try {
+            await connectDB();
+            const tenantId = req.user.tenantId;
+
+            if (!tenantId) {
+                return res.status(400).json({ message: 'Usuario no tiene institución asociada' });
+            }
+
+            const tenant = await Tenant.findByIdAndUpdate(
+                tenantId,
+                req.body,
+                { new: true }
+            );
+
+            if (!tenant) {
+                return res.status(404).json({ message: 'Institución no encontrada' });
+            }
+
+            return res.status(200).json(tenant);
+        } catch (error) {
+            return res.status(400).json({ message: error.message });
+        }
+    }
 }
 
 export default TenantController;

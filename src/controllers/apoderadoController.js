@@ -7,8 +7,8 @@ class ApoderadoController {
             const { estudianteId, nombre, apellidos, direccion, telefono, correo, tipo, parentesco } = req.body;
 
             if (!estudianteId || !nombre || !apellidos) {
-                return res.status(400).json({ 
-                    message: 'Estudiante, nombre y apellidos son obligatorios' 
+                return res.status(400).json({
+                    message: 'Estudiante, nombre y apellidos son obligatorios'
                 });
             }
 
@@ -34,8 +34,8 @@ class ApoderadoController {
         } catch (error) {
             console.error('❌ Error al crear apoderado:', error);
             if (error.code === 11000) {
-                return res.status(400).json({ 
-                    message: 'Ya existe un apoderado principal para este estudiante' 
+                return res.status(400).json({
+                    message: 'Ya existe un apoderado principal para este estudiante'
                 });
             }
             res.status(500).json({ message: 'Error al crear apoderado', error: error.message });
@@ -45,7 +45,11 @@ class ApoderadoController {
     // Obtener todos los apoderados del tenant
     static async getApoderados(req, res) {
         try {
-            const apoderados = await Apoderado.find({ tenantId: req.user.tenantId })
+            const query = (req.user.role === 'admin')
+                ? {}
+                : { tenantId: req.user.tenantId };
+
+            const apoderados = await Apoderado.find(query)
                 .populate('estudianteId', 'nombre apellido grado')
                 .sort({ createdAt: -1 });
 
@@ -98,16 +102,16 @@ class ApoderadoController {
             ).populate('estudianteId', 'nombre apellido grado');
 
             if (!apoderado) {
-                return res.status(404).json({ 
-                    message: 'Apoderado no encontrado o no pertenece a tu tenant' 
+                return res.status(404).json({
+                    message: 'Apoderado no encontrado o no pertenece a tu tenant'
                 });
             }
 
             res.status(200).json(apoderado);
         } catch (error) {
             if (error.code === 11000) {
-                return res.status(400).json({ 
-                    message: 'Ya existe un apoderado principal para este estudiante' 
+                return res.status(400).json({
+                    message: 'Ya existe un apoderado principal para este estudiante'
                 });
             }
             res.status(400).json({ message: error.message });
@@ -123,8 +127,8 @@ class ApoderadoController {
             });
 
             if (!apoderado) {
-                return res.status(404).json({ 
-                    message: 'Apoderado no encontrado o no pertenece a tu tenant' 
+                return res.status(404).json({
+                    message: 'Apoderado no encontrado o no pertenece a tu tenant'
                 });
             }
 

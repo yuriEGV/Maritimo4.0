@@ -7,31 +7,75 @@ class EnrollmentController {
     static async createEnrollment(req, res) {
         try {
             const {
-                studentId,      // viene del frontend
+                studentId,
                 courseId,
                 period,
                 apoderadoId,
                 status,
                 fee,
-                notes
+                notes,
+                newStudent,   // { nombres, apellidos, rut, email, grado, edad }
+                newGuardian   // { nombre, apellidos, correo, telefono, direccion, parentesco }
             } = req.body;
 
-            // Validaciones claras
-            if (!studentId || !courseId || !period) {
+            const tenantId = req.user.tenantId;
+            let finalStudentId = studentId;
+            let finalGuardianId = apoderadoId;
+
+            // 1. Logic for New Student Creation (Improved)
+            if (!finalStudentId && newStudent && newStudent.nombres) {
+                const Estudiante = await import('../models/estudianteModel.js').then(m => m.default);
+
+                // Check if student already exists by RUT or Email to avoid Duplicate Key Error
+                const existingStudent = await Estudiante.findOne({
+                    $or: [
+                        { rut: newStudent.rut },
+                        { email: newStudent.email }
+                    ].filter(c => Object.values(c)[0]) // Filter out undefined checks
+                });
+
+                if (existingStudent) {
+                    console.log(`Student already exists (ID: ${existingStudent._id}). Using existing student.`);
+                    finalStudentId = existingStudent._id;
+                } else {
+                    const std = new Estudiante({
+                        ...newStudent,
+                        tenantId
+                    });
+                    await std.save();
+                    finalStudentId = std._id;
+                }
+            }
+
+            // 2. Logic for New Guardian Creation
+            if (newGuardian && newGuardian.nombre) {
+                const Apoderado = await import('../models/apoderadoModel.js').then(m => m.default);
+                const apo = new Apoderado({
+                    ...newGuardian,
+                    estudianteId: finalStudentId,
+                    tenantId,
+                    tipo: 'principal'
+                });
+                await apo.save();
+                finalGuardianId = apo._id;
+            }
+
+            if (!finalStudentId || !courseId || !period) {
                 return res.status(400).json({
-                    message: 'studentId, courseId y period son obligatorios'
+                    message: 'Debe seleccionar o crear un estudiante, asignar un curso y definir el periodo.'
                 });
             }
 
-            // [NUEVO] Verificar morosidad
-            const overduePayments = await import('../models/paymentModel.js').then(m => m.default.countDocuments({
-                estudianteId: studentId,
+            // [NUEVO] Verificar morosidad (Optimizado)
+            const Payment = await import('../models/paymentModel.js').then(m => m.default);
+            const overduePayments = await Payment.countDocuments({
+                estudianteId: finalStudentId,
                 estado: 'vencido'
-            }));
+            });
 
             if (overduePayments > 0) {
                 const { superKey } = req.body;
-                const REQUIRED_KEY = process.env.SUPER_KEY || 'admin123'; // Fallback seguro
+                const REQUIRED_KEY = process.env.SUPER_KEY || 'admin123';
 
                 if (superKey !== REQUIRED_KEY) {
                     return res.status(403).json({
@@ -42,11 +86,11 @@ class EnrollmentController {
             }
 
             const enrollment = new Enrollment({
-                tenantId: req.user.tenantId,   // SIEMPRE desde JWT
-                estudianteId: studentId,       // normalización aquí
+                tenantId,
+                estudianteId: finalStudentId,
                 courseId,
                 period,
-                apoderadoId,
+                apoderadoId: finalGuardianId,
                 status,
                 fee,
                 notes
@@ -88,7 +132,11 @@ class EnrollmentController {
     // Get all enrollments
     static async getEnrollments(req, res) {
         try {
-            const enrollments = await Enrollment.find()
+            const query = (req.user.role === 'admin')
+                ? {}
+                : { tenantId: req.user.tenantId };
+
+            const enrollments = await Enrollment.find(query)
                 .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code')
                 .populate('apoderadoId', 'nombre apellidos');
@@ -98,10 +146,13 @@ class EnrollmentController {
         }
     }
 
-    // Get enrollments by student
+    // Get enrollments by student (Secure)
     static async getEnrollmentsByStudent(req, res) {
         try {
-            const enrollments = await Enrollment.find({ estudianteId: req.params.estudianteId })
+            const enrollments = await Enrollment.find({
+                estudianteId: req.params.studentId || req.params.estudianteId,
+                tenantId: req.user.tenantId
+            })
                 .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code')
                 .populate('apoderadoId', 'nombre apellidos');
@@ -111,10 +162,13 @@ class EnrollmentController {
         }
     }
 
-    // Get enrollments by course
+    // Get enrollments by course (Secure)
     static async getEnrollmentsByCourse(req, res) {
         try {
-            const enrollments = await Enrollment.find({ courseId: req.params.courseId })
+            const enrollments = await Enrollment.find({
+                courseId: req.params.courseId,
+                tenantId: req.user.tenantId
+            })
                 .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code')
                 .populate('apoderadoId', 'nombre apellidos');
@@ -124,10 +178,15 @@ class EnrollmentController {
         }
     }
 
-    // Get enrollments by tenant
+    // Get enrollments by tenant (Secure)
     static async getEnrollmentsByTenant(req, res) {
         try {
-            const enrollments = await Enrollment.find({ tenantId: req.params.tenantId })
+            const targetTenant = req.params.tenantId;
+            if (req.user.role !== 'admin' && req.user.tenantId !== targetTenant) {
+                return res.status(403).json({ message: 'Acceso denegado' });
+            }
+
+            const enrollments = await Enrollment.find({ tenantId: targetTenant })
                 .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code')
                 .populate('apoderadoId', 'nombre apellidos');
@@ -137,10 +196,13 @@ class EnrollmentController {
         }
     }
 
-    // Get enrollments by period
+    // Get enrollments by period (Secure)
     static async getEnrollmentsByPeriod(req, res) {
         try {
-            const enrollments = await Enrollment.find({ period: req.params.period })
+            const enrollments = await Enrollment.find({
+                period: req.params.period,
+                tenantId: req.user.tenantId
+            })
                 .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code')
                 .populate('apoderadoId', 'nombre apellidos');
@@ -150,10 +212,13 @@ class EnrollmentController {
         }
     }
 
-    // Get a single enrollment by ID
+    // Get a single enrollment by ID (Secure)
     static async getEnrollmentById(req, res) {
         try {
-            const enrollment = await Enrollment.findById(req.params.id)
+            const enrollment = await Enrollment.findOne({
+                _id: req.params.id,
+                tenantId: req.user.tenantId
+            })
                 .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code')
                 .populate('apoderadoId', 'nombre apellidos');
@@ -166,10 +231,14 @@ class EnrollmentController {
         }
     }
 
-    // Update an enrollment by ID
+    // Update an enrollment by ID (Secure)
     static async updateEnrollment(req, res) {
         try {
-            const enrollment = await Enrollment.findByIdAndUpdate(req.params.id, req.body, { new: true })
+            const enrollment = await Enrollment.findOneAndUpdate(
+                { _id: req.params.id, tenantId: req.user.tenantId },
+                req.body,
+                { new: true }
+            )
                 .populate('estudianteId', 'nombre apellido')
                 .populate('courseId', 'name code')
                 .populate('apoderadoId', 'nombre apellidos');
@@ -182,10 +251,13 @@ class EnrollmentController {
         }
     }
 
-    // Add documents to an existing enrollment
+    // Add documents to an existing enrollment (Secure)
     static async addDocuments(req, res) {
         try {
-            const enrollment = await Enrollment.findById(req.params.id);
+            const enrollment = await Enrollment.findOne({
+                _id: req.params.id,
+                tenantId: req.user.tenantId
+            });
             if (!enrollment) return res.status(404).json({ message: 'Inscripción no encontrada' });
 
             if (req.files && req.files.length) {
@@ -213,10 +285,13 @@ class EnrollmentController {
         }
     }
 
-    // Delete an enrollment by ID
+    // Delete an enrollment by ID (Secure)
     static async deleteEnrollment(req, res) {
         try {
-            const enrollment = await Enrollment.findByIdAndDelete(req.params.id);
+            const enrollment = await Enrollment.findOneAndDelete({
+                _id: req.params.id,
+                tenantId: req.user.tenantId
+            });
             if (!enrollment) {
                 return res.status(404).json({ message: 'Inscripción no encontrada' });
             }

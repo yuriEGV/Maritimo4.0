@@ -11,6 +11,10 @@ router.use(authMiddleware);
 router.post('/', authorizeRoles('admin', 'sostenedor'), tenantController.createTenant);
 
 router.get('/', tenantController.getTenants);
+// Mi Institución (Configuración para Sostenedores)
+router.get('/my', tenantController.getMyTenant);
+router.put('/my', authorizeRoles('admin', 'sostenedor'), tenantController.updateMyTenant);
+
 router.get('/:id', tenantController.getTenantById);
 
 // Update/Delete - Solo Admin o Sostenedor

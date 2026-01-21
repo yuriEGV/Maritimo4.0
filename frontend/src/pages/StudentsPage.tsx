@@ -8,6 +8,8 @@ interface Student {
     _id: string;
     nombres: string;
     apellidos: string;
+    rut?: string;
+    matricula?: string;
     email: string;
     grado: string;
     edad?: number;
@@ -123,6 +125,9 @@ const StudentsPage = () => {
                                         <p className="text-xs text-gray-400 mt-1 uppercase tracking-wide">
                                             {student.grado || 'Sin grado'}
                                         </p>
+                                        <p className="text-[10px] font-mono text-gray-400 bg-gray-50 px-1 mt-1 inline-block rounded">
+                                            ID: {student.matricula || student.rut || 'S/N'}
+                                        </p>
                                     </div>
                                 </div>
                                 {canManageStudents && (
@@ -176,6 +181,26 @@ const StudentsPage = () => {
                                     value={currentStudent.apellidos || ''}
                                     onChange={e => setCurrentStudent({ ...currentStudent, apellidos: e.target.value })}
                                 />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">RUT</label>
+                                    <input
+                                        className="w-full border p-2 rounded"
+                                        value={currentStudent.rut || ''}
+                                        onChange={e => setCurrentStudent({ ...currentStudent, rut: e.target.value })}
+                                        placeholder="12.345.678-9"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Matrícula</label>
+                                    <input
+                                        className="w-full border p-2 rounded"
+                                        value={currentStudent.matricula || ''}
+                                        onChange={e => setCurrentStudent({ ...currentStudent, matricula: e.target.value })}
+                                        placeholder="Auto/Manual"
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">Email</label>

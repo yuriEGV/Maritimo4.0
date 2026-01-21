@@ -45,7 +45,7 @@ const LoginPage: React.FC = () => {
             <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
                 <div className="w-full max-w-md">
                     <div className="text-center mb-10">
-                        <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-widest">Colegios</h2>
+                        <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-widest">Ingresa tus datos</h2>
                         <p className="text-gray-500 mt-2">Plataforma de Gestión Escolar</p>
                     </div>
 

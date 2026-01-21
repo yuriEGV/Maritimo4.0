@@ -5,7 +5,8 @@ const estudianteSchema = new mongoose.Schema({
 
   nombres: { type: String, required: true },
   apellidos: { type: String, required: true },
-
+  rut: { type: String, unique: true, sparse: true },
+  matricula: { type: String, unique: true, sparse: true },
   email: { type: String, required: true },
 
   edad: { type: Number },

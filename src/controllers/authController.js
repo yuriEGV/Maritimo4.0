@@ -194,6 +194,7 @@ function sanitizeUser(user) {
         email: user.email,
         rut: user.rut,
         role: user.role,
+        profileId: user.profileId,
         tenantId: user.tenantId,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
@@ -447,6 +448,19 @@ async function resetPassword(req, res) {
     } catch (error) {
         return res.status(400).json({ message: 'Token inválido o expirado' });
     }
+}
+
+function invalidateToken(req, res) {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+    if (!token) {
+        return res.status(400).json({ message: 'No se proporcionó token' });
+    }
+
+    tokenStore.add(token);
+
+    return res.json({ message: 'Token invalidado correctamente' });
 }
 
 export {

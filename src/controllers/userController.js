@@ -34,7 +34,9 @@ class UserController {
                 profesor: 'teacher',
                 teacher: 'teacher',
                 alumno: 'student',
-                student: 'student'
+                student: 'student',
+                apoderado: 'apoderado',
+                guardian: 'apoderado'
             };
 
             const finalRole = roleMap[rol || role];
@@ -55,8 +57,13 @@ class UserController {
 
             const passwordHash = await bcrypt.hash(password, 10);
 
+            // SuperAdmin can override tenantId from body
+            const tenantId = (req.user.role === 'admin' && req.body.tenantId)
+                ? req.body.tenantId
+                : req.user.tenantId;
+
             const user = await User.create({
-                tenantId: req.user.tenantId,
+                tenantId,
                 name: finalName,
                 email: normalizedEmail,
                 passwordHash,
@@ -73,11 +80,39 @@ class UserController {
     /* =====================================================
        GET USERS (solo tenant actual)
     ===================================================== */
+    /* =====================================================
+       GET USERS (Filtrable por tenant/rol)
+    ===================================================== */
     static async getUsers(req, res) {
         try {
-            const users = await User.find({
-                tenantId: req.user.tenantId
-            }).select('-passwordHash');
+            const query = {};
+
+            // 1. Tenant Filter
+            if (req.user.role === 'admin') {
+                // SuperAdmin can filter by any tenantId if provided in query
+                if (req.query.tenantId) {
+                    query.tenantId = req.query.tenantId;
+                }
+                // If not provided, they see all (default) or we could force own tenant? 
+                // Let's keep it open for admin dashboard, but filtered if params exist.
+            } else {
+                // Non-admins strictly locked to their tenant
+                query.tenantId = req.user.tenantId;
+            }
+
+            // 2. Role Filter (e.g. ?role=teacher)
+            if (req.query.role) {
+                // Map frontend roles to backend roles if needed, or assume backend values
+                // 'profesor' -> 'teacher' mapping if necessary
+                const roleMap = {
+                    'profesor': 'teacher',
+                    'alumno': 'student',
+                    'apoderado': 'apoderado'
+                };
+                query.role = roleMap[req.query.role] || req.query.role;
+            }
+
+            const users = await User.find(query).select('-passwordHash');
 
             res.status(200).json(users);
         } catch (error) {
@@ -131,7 +166,10 @@ class UserController {
                     profesor: 'teacher',
                     teacher: 'teacher',
                     alumno: 'student',
-                    student: 'student'
+                    student: 'student',
+                    sostenedor: 'sostenedor',
+                    apoderado: 'apoderado',
+                    guardian: 'apoderado'
                 };
 
                 const newRole = roleMap[req.body.role || req.body.rol];

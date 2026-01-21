@@ -72,9 +72,14 @@ import mercadoLibreService from './mercadoLibreService.js';
 import webpayService from './webpayService.js';
 
 // Config MercadoPago
-mercadopago.configure({
-  access_token: process.env.MERCADOPAGO_ACCESS_TOKEN,
-});
+// Config MercadoPago
+if (process.env.MERCADOPAGO_ACCESS_TOKEN) {
+  mercadopago.configure({
+    access_token: process.env.MERCADOPAGO_ACCESS_TOKEN,
+  });
+} else {
+  console.warn("⚠️ MERCADOPAGO_ACCESS_TOKEN no definido en variables de entorno. Los pagos con MP fallarán.");
+}
 
 const createPaymentFromTariff = async ({ tenantId, estudianteId, tariffId, provider, metadata = {} }) => {
   // Validar tarifa

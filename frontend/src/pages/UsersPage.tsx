@@ -8,26 +8,38 @@ interface UserData {
     _id: string;
     name: string;
     email: string;
-    role: 'admin' | 'sostenedor' | 'teacher' | 'student';
+    role: 'admin' | 'sostenedor' | 'teacher' | 'student' | 'apoderado';
     rut?: string;
     password?: string;
+    profileId?: string;
 }
 
 const UsersPage = () => {
-    const { canManageUsers, user: currentUser } = usePermissions();
+    const { canManageUsers, isSuperAdmin, user: currentUser } = usePermissions();
     const [users, setUsers] = useState<UserData[]>([]);
+    const [tenants, setTenants] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
     // Modal State
     const [showModal, setShowModal] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-    const [currentUserData, setCurrentUserData] = useState<Partial<UserData>>({});
+    const [currentUserData, setCurrentUserData] = useState<Partial<UserData & { tenantId?: string }>>({});
     const [password, setPassword] = useState('');
 
     useEffect(() => {
         fetchUsers();
-    }, []);
+        if (isSuperAdmin) fetchTenants();
+    }, [isSuperAdmin]);
+
+    const fetchTenants = async () => {
+        try {
+            const res = await api.get('/tenants');
+            setTenants(res.data);
+        } catch (err) {
+            console.error('Error fetching tenants:', err);
+        }
+    };
 
     const fetchUsers = async () => {
         try {
@@ -80,6 +92,7 @@ const UsersPage = () => {
             case 'sostenedor': return <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-bold">Sostenedor</span>;
             case 'teacher': return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold">Profesor</span>;
             case 'student': return <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-bold">Estudiante</span>;
+            case 'apoderado': return <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-bold">Apoderado</span>;
             default: return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">Usuario</span>;
         }
     };
@@ -215,6 +228,7 @@ const UsersPage = () => {
                                     <option value="sostenedor">Sostenedor</option>
                                     <option value="teacher">Profesor</option>
                                     <option value="student">Estudiante</option>
+                                    <option value="apoderado">Apoderado</option>
                                 </select>
                             </div>
                             <div>
@@ -230,6 +244,31 @@ const UsersPage = () => {
                                     placeholder={modalMode === 'create' ? '******' : 'Dejar en blanco para mantener'}
                                 />
                             </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Enlazar Perfil (ID de Estudiante/Apoderado)</label>
+                                <input
+                                    className="w-full border p-2 rounded"
+                                    value={currentUserData.profileId || ''}
+                                    onChange={e => setCurrentUserData({ ...currentUserData, profileId: e.target.value })}
+                                    placeholder="ID de base de datos (opcional)"
+                                />
+                                <p className="text-[10px] text-gray-400 mt-1">Vincula este usuario con su ficha real para recibir notificaciones.</p>
+                            </div>
+                            {isSuperAdmin && modalMode === 'create' && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 text-blue-600 font-bold">Asignar a Institución (SuperAdmin)</label>
+                                    <select
+                                        className="w-full border-2 border-blue-100 p-2 rounded bg-white font-bold"
+                                        value={currentUserData.tenantId || ''}
+                                        onChange={e => setCurrentUserData({ ...currentUserData, tenantId: e.target.value })}
+                                    >
+                                        <option value="">Mi Institución Actual</option>
+                                        {tenants.map(t => (
+                                            <option key={t._id} value={t._id}>{t.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
                             <div className="flex justify-end gap-2 mt-6">
                                 <button
                                     type="button"

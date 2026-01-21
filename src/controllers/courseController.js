@@ -46,7 +46,11 @@ export default class CourseController {
 
     static async getCourses(req, res) {
         try {
-            const courses = await Course.find({ tenantId: req.user.tenantId })
+            const query = (req.user.role === 'admin' && req.query.tenantId)
+                ? { tenantId: req.query.tenantId }
+                : (req.user.role === 'admin' ? {} : { tenantId: req.user.tenantId });
+
+            const courses = await Course.find(query)
                 .populate('teacherId', 'name email')
                 .sort({ createdAt: -1 });
 
@@ -64,6 +68,11 @@ export default class CourseController {
     static async getCoursesByTenant(req, res) {
         try {
             const { tenantId } = req.params;
+
+            // Strict check: only SuperAdmin or the owner institutional user
+            if (req.user.role !== 'admin' && req.user.tenantId !== tenantId) {
+                return res.status(403).json({ message: 'Acceso denegado' });
+            }
 
             const courses = await Course.find({ tenantId })
                 .populate('teacherId', 'name email')

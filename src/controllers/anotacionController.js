@@ -1,5 +1,6 @@
 import Anotacion from '../models/anotacionModel.js';
 import mongoose from 'mongoose';
+import NotificationService from '../services/notificationService.js';
 
 class AnotacionController {
     // Crear una nueva anotación
@@ -35,6 +36,15 @@ class AnotacionController {
             await anotacion.populate('estudianteId', 'nombre apellido grado');
             await anotacion.populate('creadoPor', 'name email role');
 
+            // Send notification
+            NotificationService.notifyNewAnnotation(
+                anotacion.estudianteId._id,
+                anotacion.tipo,
+                anotacion.titulo,
+                anotacion.descripcion,
+                anotacion.tenantId
+            );
+
             res.status(201).json({
                 message: 'Anotación creada exitosamente',
                 anotacion
@@ -53,7 +63,9 @@ class AnotacionController {
     static async getAnotaciones(req, res) {
         try {
             const { tipo, estudianteId } = req.query;
-            const query = { tenantId: req.user.tenantId };
+            const query = (req.user.role === 'admin')
+                ? {}
+                : { tenantId: req.user.tenantId };
 
             if (tipo) {
                 query.tipo = tipo;
