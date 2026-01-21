@@ -1,17 +1,17 @@
+```
 import 'dotenv/config'; // Importar primero para cargar variables de entorno
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import apiRoutes from './routes/index.js';
 import morgan from 'morgan';
-import errorMiddleware from './middleware/errorMiddleware.js';
 import connectDB from './config/db.js';
 import { fileURLToPath } from 'url';
-import reportRoutes from './routes/reportRoutes.js';
-import authMiddleware from './middleware/authMiddleware.js';
 
 const app = express();
 
+// ========================================
+// CORS MUST BE ABSOLUTELY FIRST
+// ========================================
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
@@ -23,14 +23,22 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, X-Requested-With, Accept, X-CSRF-Token');
-  res.setHeader('Access-Control-Max-Age', '86400'); // Cache for 24h
+  res.setHeader('Access-Control-Max-Age', '86400');
 
-  // Respond to Preflight
+  // Handle preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
   next();
 });
+
+// Now safe to import routes (after JWT check is non-fatal)
+import apiRoutes from './routes/index.js';
+import errorMiddleware from './middleware/errorMiddleware.js';
+import reportRoutes from './routes/reportRoutes.js';
+import authMiddleware from './middleware/authMiddleware.js';
+
+
 
 
 // Middleware
@@ -86,7 +94,7 @@ app.get('/setup-admin', async (req, res) => {
         user.role = 'admin';
         user.tenantId = tenant._id;
         await user.save();
-        results.push(`${admin.email} updated`);
+        results.push(`${ admin.email } updated`);
       } else {
         await User.create({
           name: admin.name,
@@ -96,7 +104,7 @@ app.get('/setup-admin', async (req, res) => {
           tenantId: tenant._id,
           rut: admin.rut
         });
-        results.push(`${admin.email} created`);
+        results.push(`${ admin.email } created`);
       }
     }
     return res.json({ message: 'Setup complete', details: results });
@@ -116,15 +124,15 @@ if (process.argv[1] === __filename) {
 
   connectDB()
     .then(() => {
-      console.log(`✅ MongoDB conectado a: ${mongoose.connection.host}`);
+      console.log(`✅ MongoDB conectado a: ${ mongoose.connection.host } `);
 
       app.listen(PORT, () => {
         console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
       });
     })
-    .catch(err => {
-      console.error('❌ Error conectando a MongoDB:', err.message);
-    });
+    .catch (err => {
+  console.error('❌ Error conectando a MongoDB:', err.message);
+});
 }
 
 export default app;

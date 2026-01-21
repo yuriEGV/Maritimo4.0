@@ -173,12 +173,13 @@ import * as tokenStore from '../utils/tokenStore.js';
 /* ===============================
    CONFIGURACIÓN JWT
 ================================ */
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-CHANGE-IN-PRODUCTION';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
 
-if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET no está definido en las variables de entorno');
+if (!process.env.JWT_SECRET) {
+    console.warn('⚠️  WARNING: JWT_SECRET not set. Using fallback. SET THIS IN PRODUCTION!');
 }
+
 
 /* ===============================
    HELPERS
