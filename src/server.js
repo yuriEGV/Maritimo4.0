@@ -9,28 +9,23 @@ import { fileURLToPath } from 'url';
 const app = express();
 
 // ========================================
-// CORS MUST BE ABSOLUTELY FIRST
+// CORS ABSOLUTAMENTE PRIMERO
 // ========================================
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  // Always mirror the origin to support dynamic Vercel previews
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-
+  // Permitir todos los orígenes en desarrollo
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, X-Requested-With, Accept, X-CSRF-Token');
   res.setHeader('Access-Control-Max-Age', '86400');
 
-  // Handle preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
   next();
 });
-
 // Now safe to import routes (after JWT check is non-fatal)
 import apiRoutes from './routes/index.js';
 import errorMiddleware from './middleware/errorMiddleware.js';

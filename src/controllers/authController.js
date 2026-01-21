@@ -173,13 +173,8 @@ import * as tokenStore from '../utils/tokenStore.js';
 /* ===============================
    CONFIGURACIÓN JWT
 ================================ */
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-CHANGE-IN-PRODUCTION';
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
-
-if (!process.env.JWT_SECRET) {
-    console.warn('⚠️  WARNING: JWT_SECRET not set. Using fallback. SET THIS IN PRODUCTION!');
-}
-
 
 /* ===============================
    HELPERS
@@ -271,6 +266,11 @@ async function registrar(req, res) {
 ================================ */
 async function login(req, res) {
     try {
+        // Security check
+        if (!JWT_SECRET) {
+            return res.status(500).json({ message: 'Configuración del servidor incompleta' });
+        }
+
         console.log('LOGIN BODY:', req.body); // [DEBUG]
 
         const { email, rut, password } = req.body;
