@@ -74,6 +74,36 @@ class NotificationService {
             console.error('❌ Error in notifyNewAnnotation:', error);
         }
     }
+
+
+    /**
+     * Send notification to guardians when a debt block occurs (debt > 3 months)
+     */
+    static async notifyDebtor(guardianId, studentName, debtAmount, details) {
+        try {
+            const guardian = await Apoderado.findById(guardianId);
+            if (!guardian || !guardian.correo) return;
+
+            const html = `
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                    <h2 style="color: #ef4444;">Aviso de Bloqueo de Matrícula</h2>
+                    <p>Estimado(a) <strong>${guardian.nombre} ${guardian.apellidos}</strong>,</p>
+                    <p>Le informamos que el alumno <strong>${studentName}</strong> presenta una situación de morosidad superior a 3 meses, lo cual impide el proceso de matrícula.</p>
+                    <div style="background-color: #fff1f2; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px solid #fecaca;">
+                        <p><strong>Monto Pendiente:</strong> $${debtAmount}</p>
+                        <p><strong>Detalle:</strong> ${details}</p>
+                    </div>
+                    <p>Por favor, acérquese a administración o contacte al sostenedor para regularizar su situación.</p>
+                    <p style="margin-top: 20px; font-size: 12px; color: #777;">Maritimo 4.0 - Sistema de Gestión Escolar</p>
+                </div>
+            `;
+
+            await sendEmail(guardian.correo, `Aviso Importante: Morosidad ${studentName}`, html);
+            console.log(`📧 Debt notification sent to ${guardian.correo}`);
+        } catch (error) {
+            console.error('❌ Error in notifyDebtor:', error);
+        }
+    }
 }
 
 export default NotificationService;

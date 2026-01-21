@@ -66,21 +66,83 @@ class EnrollmentController {
                 });
             }
 
-            // [NUEVO] Verificar morosidad (Optimizado)
+            // [NUEVO] Verificar morosidad con bloqueo y promesa de pago
             const Payment = await import('../models/paymentModel.js').then(m => m.default);
-            const overduePayments = await Payment.countDocuments({
+            // Find all overdue payments for this student
+            const overduePaymentsList = await Payment.find({
                 estudianteId: finalStudentId,
                 estado: 'vencido'
             });
 
-            if (overduePayments > 0) {
-                const { superKey } = req.body;
-                const REQUIRED_KEY = process.env.SUPER_KEY || 'admin123';
+            const overdueCount = overduePaymentsList.length;
 
-                if (superKey !== REQUIRED_KEY) {
+            if (overdueCount > 0) {
+                // Calculate total debt and check if any is older than 3 months
+                let totalDebt = 0;
+                let hasOldDebt = false;
+                const threeMonthsAgo = new Date();
+                threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+                overduePaymentsList.forEach(p => {
+                    totalDebt += p.amount;
+                    if (p.fechaVencimiento && new Date(p.fechaVencimiento) <= threeMonthsAgo) {
+                        hasOldDebt = true;
+                    }
+                });
+
+                // Check for Payment Promise
+                const { paymentPromise } = req.body; // Expecting object: { amount, promiseDate, notes }
+                let promiseAccepted = false;
+
+                if (paymentPromise && req.user.role === 'sostenedor') {
+                    // Create Promise Record
+                    const PaymentPromise = await import('../models/paymentPromiseModel.js').then(m => m.default);
+                    const promise = new PaymentPromise({
+                        tenantId,
+                        studentId: finalStudentId,
+                        apoderadoId: finalGuardianId,
+                        amount: paymentPromise.amount,
+                        promiseDate: paymentPromise.promiseDate,
+                        status: 'active',
+                        createdBy: req.user.userId,
+                        notes: paymentPromise.notes
+                    });
+
+                    // We save the promise after successful enrollment creation (or here if we transact)
+                    // For now, save it here to validate it works
+                    await promise.save();
+
+                    // Allow proceeding
+                    promiseAccepted = true;
+
+                    // Attach promise ID to request to link later if needed, or just log
+                    console.log(`✅ Payment promise accepted for student ${finalStudentId} by Sostenedor ${req.user.userId}`);
+                }
+
+                if (!promiseAccepted) {
+                    // Trigger notification if debt is old (> 3 months)
+                    if (hasOldDebt) {
+                        const NotificationService = await import('../services/notificationService.js').then(m => m.default);
+                        const Estudiante = await import('../models/estudianteModel.js').then(m => m.default);
+                        const studentDetails = await Estudiante.findById(finalStudentId);
+
+                        // Run in background to not block response
+                        NotificationService.notifyDebtor(
+                            finalGuardianId,
+                            `${studentDetails.nombres} ${studentDetails.apellidos}`,
+                            totalDebt,
+                            `Posee ${overdueCount} mensualidades vencidas, algunas con más de 3 meses de antigüedad.`
+                        ).catch(err => console.error('Background notification error:', err));
+                    }
+
                     return res.status(403).json({
-                        message: `El estudiante tiene ${overduePayments} pagos vencidos. Se requiere Super Clave para matricular.`,
-                        code: 'ARREARS_LOCK'
+                        message: `El estudiante tiene ${overdueCount} pagos vencidos. Bloqueo de matrícula activo.`,
+                        code: 'DEBT_BLOCK',
+                        details: {
+                            overdueCount,
+                            totalDebt,
+                            hasOldDebt
+                        }
                     });
                 }
             }
