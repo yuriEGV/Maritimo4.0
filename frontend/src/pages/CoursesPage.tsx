@@ -34,7 +34,8 @@ const CoursesPage = () => {
     // Modal State
     const [showModal, setShowModal] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-    const [currentCourse, setCurrentCourse] = useState<Partial<Course & { teacherId: string }>>({});
+    const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+    const [currentCourse, setCurrentCourse] = useState<Partial<Course> | null>(null);
 
     // Form specific state (since teacherId can be object or string in different contexts)
     const [formData, setFormData] = useState({

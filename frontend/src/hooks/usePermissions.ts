@@ -12,6 +12,11 @@ export interface Permissions {
     canViewSensitiveData: boolean;
     isSuperAdmin: boolean;
     canManageCourses: boolean;
+    // Added missing permissions
+    canManageSubjects: boolean;
+    isTeacher: boolean;
+    isSostenedor: boolean;
+    canManagePayments: boolean;
 }
 
 export const usePermissions = (): Permissions => {
@@ -20,6 +25,9 @@ export const usePermissions = (): Permissions => {
 
     const isStaff = role === 'admin' || role === 'sostenedor' || role === 'teacher';
     const isAdmin = role === 'admin' || role === 'sostenedor';
+    const isTeacher = role === 'teacher';
+    const isSostenedor = role === 'sostenedor';
+    const isSuperAdmin = role === 'admin';
 
     return {
         user,
@@ -30,7 +38,12 @@ export const usePermissions = (): Permissions => {
         canEditAnnotations: isStaff,
         canEditGrades: isStaff,
         canViewSensitiveData: isAdmin,
-        isSuperAdmin: role === 'admin',
+        isSuperAdmin,
         canManageCourses: isAdmin,
+        // New permissions
+        canManageSubjects: isAdmin || isTeacher,
+        isTeacher,
+        isSostenedor,
+        canManagePayments: isAdmin,
     };
 };

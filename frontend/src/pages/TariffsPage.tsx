@@ -21,7 +21,14 @@ const TariffsPage = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        _id: string;
+        name: string;
+        description: string;
+        amount: number;
+        currency: string;
+        active: boolean;
+    }>({
         _id: '',
         name: '',
         description: '',
@@ -113,7 +120,7 @@ const TariffsPage = () => {
                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button onClick={() => {
                                         setModalMode('edit');
-                                        setFormData(tariff);
+                                        setFormData({ ...tariff, description: tariff.description || '' });
                                         setShowModal(true);
                                     }} className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
                                         <Edit size={18} />

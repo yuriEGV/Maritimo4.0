@@ -144,7 +144,7 @@ const AttendancePage = () => {
     };
 
     const handlePrint = useReactToPrint({
-        content: () => printRef.current,
+        contentRef: printRef,
         documentTitle: `Asistencia-${selectedCourse}-${selectedDate}`,
     });
 

@@ -25,6 +25,7 @@ interface Tariff {
     _id: string;
     name: string;
     amount: number;
+    active?: boolean;
 }
 
 const PaymentsPage = () => {
