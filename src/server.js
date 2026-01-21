@@ -15,18 +15,17 @@ const app = express();
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  // Dynamic matching for any Vercel domain or Localhost
-  if (origin && (origin.endsWith('.vercel.app') || origin.includes('localhost') || origin.includes('127.0.0.1'))) {
+  // Always mirror the origin to support dynamic Vercel previews
+  if (origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  } else if (!origin) {
-    // Allow server-to-server or tools like Postman
-    res.setHeader('Access-Control-Allow-Origin', '*');
   }
 
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, X-Requested-With, Accept');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, X-Requested-With, Accept, X-CSRF-Token');
+  res.setHeader('Access-Control-Max-Age', '86400'); // Cache for 24h
 
+  // Respond to Preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
