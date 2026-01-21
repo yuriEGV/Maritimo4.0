@@ -12,19 +12,26 @@ import authMiddleware from './middleware/authMiddleware.js';
 
 const app = express();
 
-const allowedOrigins = [
-  "https://maritimo4-0.vercel.app",
-  "https://maritimo4-0-ko2s.vercel.app"
-];
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-tenant-id", "X-Requested-With", "Accept"],
-  credentials: true
-}));
+  // Dynamic matching for any Vercel domain or Localhost
+  if (origin && (origin.endsWith('.vercel.app') || origin.includes('localhost') || origin.includes('127.0.0.1'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else if (!origin) {
+    // Allow server-to-server or tools like Postman
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
 
-app.options("*", cors()); // Manejo de preflight
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, X-Requested-With, Accept');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
 
 
 // Middleware
