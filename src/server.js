@@ -1,5 +1,6 @@
 import 'dotenv/config'; // Importar primero para cargar variables de entorno
 import express from 'express';
+import cors from 'cors';
 import mongoose from 'mongoose';
 import apiRoutes from './routes/index.js';
 import morgan from 'morgan';
@@ -11,33 +12,25 @@ import authMiddleware from './middleware/authMiddleware.js';
 
 const app = express();
 
-// --- RESILIENT CORS MIDDLEWARE ---
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
+const allowedOrigins = [
+  "https://maritimo4-0.vercel.app",
+  "https://maritimo4-0-ko2s.vercel.app"
+];
 
-  // Dynamic origin matching for Vercel and Localhost
-  const isVercel = origin && (origin.endsWith('.vercel.app') || origin.endsWith('.vercel.sh'));
-  const isLocal = origin && (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1'));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-tenant-id", "X-Requested-With", "Accept"],
+  credentials: true
+}));
 
-  if (isVercel || isLocal) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    // Fallback for safety during preflight if no origin header (unlikely in browser)
-    res.setHeader('Access-Control-Allow-Origin', 'https://maritimo4-0-ko2s.vercel.app');
-  }
-
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, X-Requested-With, Accept, X-CSRF-Token');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400'); // Cache preflight for 24h
-
-  // Handle Preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
-// ---------------------------------
+app.options("*", cors()); // Manejo de preflight
 
 
 // Middleware
