@@ -1,17 +1,15 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useReactToPrint } from 'react-to-print';
 import {
     CalendarDays,
-    Search,
     Save,
     Printer,
     CheckCircle2,
     XCircle,
     Clock,
-    Users
 } from 'lucide-react';
 
 interface Course {
@@ -26,13 +24,12 @@ interface Student {
     rut: string;
 }
 
-interface AttendanceRecord {
-    estudianteId: string;
-    estado: 'presente' | 'ausente' | 'justificado';
-}
-
 const AttendancePage = () => {
-    const { isTeacher, isSuperAdmin, isSostenedor } = usePermissions();
+    // const { isTeacher, isSuperAdmin, isSostenedor } = usePermissions();
+    usePermissions(); // Hook call needed if logic depends on it, but here it seems unused? 
+    // Actually, maybe we only need it for protection?
+    // Let's keep the hook call but remove destructured unused vars.
+    // If logic doesn't use them, I'll just remove the destructuring.
     const [courses, setCourses] = useState<Course[]>([]);
     const [students, setStudents] = useState<Student[]>([]);
     const [selectedCourse, setSelectedCourse] = useState('');

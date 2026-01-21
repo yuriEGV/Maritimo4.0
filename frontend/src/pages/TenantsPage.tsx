@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { School, Plus, Search, Globe, ShieldCheck, Edit, Trash2, MapPin, Phone, Mail } from 'lucide-react';
+import { School, Plus, Search, ShieldCheck, Edit, Trash2, MapPin, Mail } from 'lucide-react';
 
 interface Tenant {
     _id: string;

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { Plus, Edit, Trash2, Search, BookOpen, Users, GraduationCap } from 'lucide-react';
-import { useTenant } from '../context/TenantContext';
 
 interface Course {
     _id: string;
@@ -33,7 +32,6 @@ const CoursesPage = () => {
 
     // Modal State
     const [showModal, setShowModal] = useState(false);
-    const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [currentCourse, setCurrentCourse] = useState<Partial<Course> | null>(null);
 
@@ -86,7 +84,7 @@ const CoursesPage = () => {
                 teacherId: typeof course.teacherId === 'object' ? course.teacherId._id : (course.teacherId || '')
             });
         } else {
-            setCurrentCourse({});
+            setCurrentCourse(null);
             setFormData({
                 name: '',
                 description: '',
@@ -102,7 +100,9 @@ const CoursesPage = () => {
             if (modalMode === 'create') {
                 await api.post('/courses', formData);
             } else {
-                await api.put(`/courses/${currentCourse._id}`, formData);
+                if (currentCourse && currentCourse._id) {
+                    await api.put(`/courses/${currentCourse._id}`, formData);
+                }
             }
             setShowModal(false);
             fetchCourses();

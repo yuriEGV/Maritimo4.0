@@ -9,9 +9,7 @@ import {
     Search,
     GraduationCap,
     AlertCircle,
-    ChevronRight,
-    Filter,
-    BookOpen
+    ChevronRight
 } from 'lucide-react';
 
 interface Grade {

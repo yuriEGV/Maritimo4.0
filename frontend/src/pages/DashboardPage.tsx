@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
-import { User, Shield, BookOpen, GraduationCap, DollarSign, Save, Calendar, AlertCircle, FileText, School, MapPin } from 'lucide-react';
+import { User, BookOpen, GraduationCap, DollarSign, Save, Calendar, AlertCircle, FileText, School, MapPin } from 'lucide-react';
 
 const DashboardPage = () => {
     const { user } = useAuth();
@@ -23,7 +23,7 @@ const DashboardPage = () => {
 
     const [stats, setStats] = useState({ studentCount: 0, courseCount: 0 });
     const [recentGrades, setRecentGrades] = useState([]);
-    const [recentAnotaciones, setRecentAnotaciones] = useState([]);
+    // const [recentAnotaciones, setRecentAnotaciones] = useState([]); // Unused
     const [upcomingEvents, setUpcomingEvents] = useState([]);
 
     useEffect(() => {
@@ -53,8 +53,8 @@ const DashboardPage = () => {
                 const gradesRes = await api.get('/grades');
                 setRecentGrades(gradesRes.data.slice(0, 5));
 
-                const anotRes = await api.get('/anotaciones');
-                setRecentAnotaciones(anotRes.data.slice(0, 5));
+                // const anotRes = await api.get('/anotaciones');
+                // setRecentAnotaciones(anotRes.data.slice(0, 5));
             }
         } catch (error) {
             console.error('Error loading dashboard data', error);

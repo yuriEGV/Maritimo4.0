@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { DollarSign, Search, CreditCard, Calendar, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { DollarSign, Search, CreditCard, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
 interface Payment {
     _id: string;
@@ -29,7 +29,8 @@ interface Tariff {
 }
 
 const PaymentsPage = () => {
-    const { isSostenedor, isSuperAdmin, canManagePayments } = usePermissions();
+    // const { isSostenedor, isSuperAdmin, canManagePayments } = usePermissions();
+    usePermissions();
     // Assuming PaymentsPage is visible to Admin/Sostenedor/Parents(future).
     // For now manage payments (assigning debts or paying).
 
@@ -84,7 +85,7 @@ const PaymentsPage = () => {
         }
     };
 
-    const handlePayOnline = async (paymentId: string) => {
+    const handlePayOnline = async (_paymentId: string) => {
         // This triggers MP checkout flow
         // In a real app we would redirect to MP URL returned by backend
         try {

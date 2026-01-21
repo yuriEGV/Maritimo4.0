@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { ShieldCheck, Search, Filter, Clock, User, Activity } from 'lucide-react';
+import { ShieldCheck, Search, Filter, Clock, User } from 'lucide-react';
 
 interface AuditLog {
     _id: string;
