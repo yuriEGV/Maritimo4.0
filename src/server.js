@@ -12,10 +12,23 @@ const app = express();
 // CORS ABSOLUTAMENTE PRIMERO
 // ========================================
 app.use((req, res, next) => {
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'https://maritimo4-0-frontend.vercel.app',  // Frontend production
+    /^https:\/\/maritimo4-0-frontend-.*\.vercel\.app$/  // Frontend previews
+  ];
+
   const origin = req.headers.origin;
 
-  // Permitir todos los orígenes en desarrollo
-  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  // Check if origin is allowed
+  const isAllowed = allowedOrigins.some(allowed =>
+    typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
+  );
+
+  if (isAllowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-id, X-Requested-With, Accept, X-CSRF-Token');
